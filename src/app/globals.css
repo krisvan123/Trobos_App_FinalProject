@@ -18,6 +18,22 @@
   --border: #E2E8F0;
 }
 
+:root.dark {
+  --background: #080D1A;
+  --foreground: #F8FAFC;
+  --card: #0F172A;
+  --card-foreground: #F8FAFC;
+  --primary: #F8FAFC;
+  --primary-foreground: #080D1A;
+  --secondary: #94A3B8;
+  --secondary-foreground: #FFFFFF;
+  --accent: #FF4D00;
+  --accent-foreground: #FFFFFF;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --border: #1E293B;
+}
+
 body {
   color: var(--foreground);
   background-color: var(--background);
@@ -29,8 +45,8 @@ body {
 
 /* Clean Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -39,8 +55,14 @@ body {
   background: #CBD5E1;
   border-radius: 9999px;
 }
+:root.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
+}
+:root.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
 
 /* Professional Flat / Subtle Elevated Layout Helpers */
@@ -48,15 +70,29 @@ body {
   background-color: #FFFFFF;
   border: 1px solid #E2E8F0;
 }
+.dark .trobos-surface {
+  background-color: #0F172A;
+  border: 1px solid #1E293B;
+}
 
 .trobos-card {
   background-color: #FFFFFF;
   border: 1px solid #E2E8F0;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
 }
+.dark .trobos-card {
+  background-color: #0F172A;
+  border: 1px solid #1E293B;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+}
 
 .trobos-card-elevated {
   background-color: #FFFFFF;
   border: 1px solid #E2E8F0;
   box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+}
+.dark .trobos-card-elevated {
+  background-color: #0F172A;
+  border: 1px solid #1E293B;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
 }

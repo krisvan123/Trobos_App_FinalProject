@@ -13,6 +13,10 @@ export type TripStatus =
   | 'COMPLETED'
   | 'CANCELLED';
 
+export type ServiceType = 'TANDEM' | 'MECHANIC';
+
+export type PaymentMethod = 'GOPAY' | 'OVO' | 'QRIS' | 'CARD' | 'CASH';
+
 export interface LocationPoint {
   name: string;
   address: string;
@@ -120,7 +124,7 @@ export interface TandemUnit {
 
 export interface FareBreakdown {
   baseFare: number;
-  emergencyService: number; // layanan rescue breakdown
+  emergencyService: number; // layanan rescue / tandem darurat
   distanceFare: number;
   towingFare: number;
   surgeFare: number;
@@ -141,9 +145,19 @@ export interface HandoverChecklist {
   confirmed: boolean;
 }
 
+export interface ChatMessage {
+  id: string;
+  sender: 'user' | 'rider' | 'driver' | 'system';
+  senderName: string;
+  text: string;
+  timestamp: string;
+}
+
 export interface ActiveTrip {
   id: string;
   status: TripStatus;
+  serviceType: ServiceType;
+  paymentMethod: PaymentMethod;
   origin: LocationPoint;
   destination: LocationPoint; // passenger destination
   carDestination: LocationPoint; // workshop or same destination
@@ -161,6 +175,8 @@ export interface ActiveTrip {
   carProgressPercent: number;  // 0 to 100
   userEtaMinutes: number;
   carEtaMinutes: number;
+  damagePhotoUrl?: string | null;
+  damagePhotoNote?: string;
   rating?: number;
   feedbackTags?: string[];
   createdAt: string;
@@ -169,6 +185,8 @@ export interface ActiveTrip {
 export interface TripHistoryItem {
   id: string;
   date: string;
+  serviceType?: ServiceType;
+  paymentMethod?: PaymentMethod;
   origin: string;
   destination: string;
   carDestination: string;

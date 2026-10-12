@@ -13,6 +13,9 @@ import {
   BreakdownProblemId,
   BreakdownProblem,
   PassengerTransportOption,
+  ServiceType,
+  PaymentMethod,
+  ChatMessage,
 } from "@/types/trobos";
 import {
   MOCK_USER,
@@ -28,6 +31,11 @@ import {
 } from "@/lib/mockData";
 
 interface TrobosStore {
+  // Theme & Onboarding
+  theme: 'light' | 'dark';
+  hasSeenTutorial: boolean;
+  isTutorialOpen: boolean;
+  isChatOpen: boolean;
   user: UserProfile;
   vehicles: Vehicle[];
   activeVehicleId: string;
@@ -36,6 +44,11 @@ interface TrobosStore {
   carDestinationType: 'WORKSHOP' | 'SAME_AS_PASSENGER';
   selectedProblemId: BreakdownProblemId;
   passengerCount: number;
+  serviceType: ServiceType;
+  paymentMethod: PaymentMethod;
+  damagePhotoUrl: string | null;
+  damagePhotoNote: string;
+  chatMessages: ChatMessage[];
   currentTrip: ActiveTrip | null;
   tripHistory: TripHistoryItem[];
   notifications: AppNotification[];
@@ -46,8 +59,16 @@ interface TrobosStore {
   isAuthenticated: boolean;
 
   // Actions
+  toggleTheme: () => void;
+  setTheme: (theme: 'light' | 'dark') => void;
+  setHasSeenTutorial: (seen: boolean) => void;
+  setTutorialOpen: (open: boolean) => void;
+  setChatOpen: (open: boolean) => void;
   login: (email?: string) => void;
   logout: () => void;
+  setServiceType: (service: ServiceType) => void;
+  setPaymentMethod: (method: PaymentMethod) => void;
+  setDamagePhoto: (url: string | null, note?: string) => void;
   setSelectedDestination: (dest: LocationPoint) => void;
   setSelectedWorkshop: (shop: LocationPoint) => void;
   setCarDestinationType: (type: 'WORKSHOP' | 'SAME_AS_PASSENGER') => void;
@@ -55,6 +76,7 @@ interface TrobosStore {
   setPassengerCount: (count: number) => void;
   setActiveVehicleId: (id: string) => void;
   addVehicle: (v: Vehicle) => void;
+  sendChatMessage: (text: string) => void;
   startBooking: (destination?: LocationPoint) => void;
   confirmBooking: () => void;
   assignTandem: () => void;
@@ -88,9 +110,30 @@ const INITIAL_HANDOVER: HandoverChecklist = {
   confirmed: false,
 };
 
+const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
+  {
+    id: "msg-1",
+    sender: "system",
+    senderName: "Sistem Trobos",
+    text: "Unit Tandem (Rider Rizky & Driver Budi) telah ditugaskan. Saluran pesan darurat aktif.",
+    timestamp: "Baru saja",
+  },
+  {
+    id: "msg-2",
+    sender: "rider",
+    senderName: "Rizky Pratama (Rider)",
+    text: "Halo kak Andi, saya bersama Driver Budi sedang meluncur ke titik Anda di Sudirman. Posisi kami sekitar 3 menit lagi.",
+    timestamp: "1 mnt lalu",
+  },
+];
+
 export const useTrobosStore = create<TrobosStore>()(
   persist(
     (set, get) => ({
+      theme: 'light',
+      hasSeenTutorial: false,
+      isTutorialOpen: false,
+      isChatOpen: false,
       user: MOCK_USER,
       vehicles: MOCK_VEHICLES,
       activeVehicleId: MOCK_VEHICLES[0].id,
@@ -99,6 +142,11 @@ export const useTrobosStore = create<TrobosStore>()(
       carDestinationType: 'WORKSHOP',
       selectedProblemId: 'engine_failure',
       passengerCount: 1,
+      serviceType: 'TANDEM',
+      paymentMethod: 'GOPAY',
+      damagePhotoUrl: null,
+      damagePhotoNote: "",
+      chatMessages: INITIAL_CHAT_MESSAGES,
       currentTrip: null,
       tripHistory: MOCK_TRIP_HISTORY,
       notifications: MOCK_NOTIFICATIONS,
@@ -107,6 +155,36 @@ export const useTrobosStore = create<TrobosStore>()(
       isDriverOnline: true,
       hasDriverIncomingOrder: false,
       isAuthenticated: true,
+
+      toggleTheme: () => {
+        const nextTheme = get().theme === 'light' ? 'dark' : 'light';
+        if (typeof document !== 'undefined') {
+          if (nextTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        }
+        set({ theme: nextTheme });
+      },
+
+      setTheme: (theme) => {
+        if (typeof document !== 'undefined') {
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        }
+        set({ theme });
+      },
+
+      setHasSeenTutorial: (seen) => set({ hasSeenTutorial: seen }),
+      setTutorialOpen: (open) => set({ isTutorialOpen: open }),
+      setChatOpen: (open) => set({ isChatOpen: open }),
+      setServiceType: (serviceType) => set({ serviceType }),
+      setPaymentMethod: (paymentMethod) => set({ paymentMethod }),
+      setDamagePhoto: (url, note = "") => set({ damagePhotoUrl: url, damagePhotoNote: note }),
 
       login: (email) => {
         set((state) => ({
@@ -144,6 +222,36 @@ export const useTrobosStore = create<TrobosStore>()(
           activeVehicleId: v.id,
         })),
 
+      sendChatMessage: (text) => {
+        const userMsg: ChatMessage = {
+          id: `msg-${Date.now()}`,
+          sender: "user",
+          senderName: get().user.name,
+          text,
+          timestamp: "Baru saja",
+        };
+
+        set((state) => ({ chatMessages: [...state.chatMessages, userMsg] }));
+
+        // Automatic realistic response after 1.2 seconds for prototype demonstration
+        setTimeout(() => {
+          const replies = [
+            "Baik kak, kami catat. Kami langsung merapat ke titik yang kakak sebutkan.",
+            "Siap kak! Driver Budi sudah siap pegang kemudi mobil kakak.",
+            "Oke kak Andi, jangan khawatir, estimasi tiba tepat waktu.",
+          ];
+          const randomReply = replies[Math.floor(Math.random() * replies.length)];
+          const replyMsg: ChatMessage = {
+            id: `msg-${Date.now() + 1}`,
+            sender: "rider",
+            senderName: "Rizky Pratama (Rider)",
+            text: randomReply,
+            timestamp: "Baru saja",
+          };
+          set((state) => ({ chatMessages: [...state.chatMessages, replyMsg] }));
+        }, 1200);
+      },
+
       startBooking: (destination) => {
         const state = get();
         const activeVeh =
@@ -158,28 +266,42 @@ export const useTrobosStore = create<TrobosStore>()(
 
         const passengerTransport = getPassengerTransportOption(state.passengerCount);
 
-        // Calculate dynamic fare depending on passenger transport
-        let extraTransportFare = 0;
-        let passengerEta = 18;
-        if (passengerTransport.type === "CAR") {
-          extraTransportFare = 35000;
-          passengerEta = 24;
-        } else if (passengerTransport.type === "VAN") {
-          extraTransportFare = 75000;
-          passengerEta = 28;
+        // Pricing calculation:
+        // Tandem Macet: Rp 89.000 base total (Rider + Driver)
+        // Mechanic / Derek: Rp 220.000 (Towing flatbed + Armada pengganti)
+        let total = 89000;
+        let baseFare = 35000;
+        let emergencyService = 30000;
+        let towingFare = 0;
+        let distanceFare = 14000;
+        let surgeFare = 10000;
+
+        if (state.serviceType === 'MECHANIC') {
+          total = 220000;
+          baseFare = 45000;
+          emergencyService = 45000;
+          towingFare = 110000;
+          distanceFare = 20000;
+          surgeFare = 0;
         }
 
         const calculatedFare = {
-          ...DEFAULT_FARE,
-          distanceFare: DEFAULT_FARE.distanceFare + extraTransportFare,
-          totalFare: DEFAULT_FARE.baseFare + DEFAULT_FARE.emergencyService + DEFAULT_FARE.towingFare + DEFAULT_FARE.distanceFare + extraTransportFare,
-          estimatedPassengerMinutes: passengerEta,
+          baseFare,
+          emergencyService,
+          distanceFare,
+          towingFare,
+          surgeFare,
+          totalFare: total,
+          distanceKm: 6.8,
+          estimatedPassengerMinutes: 18,
           estimatedTowingMinutes: 32,
         };
 
         const newTrip: ActiveTrip = {
           id: `TRB-${Math.floor(10000 + Math.random() * 90000)}`,
           status: "REQUESTED",
+          serviceType: state.serviceType,
+          paymentMethod: state.paymentMethod,
           origin: MOCK_LOCATIONS.current,
           destination: dest,
           carDestination: carDest,
@@ -195,12 +317,14 @@ export const useTrobosStore = create<TrobosStore>()(
           handover: INITIAL_HANDOVER,
           userProgressPercent: 0,
           carProgressPercent: 0,
-          userEtaMinutes: passengerEta,
+          userEtaMinutes: 18,
           carEtaMinutes: 32,
+          damagePhotoUrl: state.damagePhotoUrl,
+          damagePhotoNote: state.damagePhotoNote,
           createdAt: new Date().toISOString(),
         };
 
-        set({ currentTrip: newTrip });
+        set({ currentTrip: newTrip, chatMessages: INITIAL_CHAT_MESSAGES });
       },
 
       confirmBooking: () => {
@@ -365,6 +489,8 @@ export const useTrobosStore = create<TrobosStore>()(
         const completedItem: TripHistoryItem = {
           id: state.currentTrip.id,
           date: new Date().toISOString(),
+          serviceType: state.currentTrip.serviceType,
+          paymentMethod: state.currentTrip.paymentMethod,
           origin: state.currentTrip.origin.name,
           destination: state.currentTrip.destination.name,
           carDestination: state.currentTrip.carDestination.name,
@@ -376,7 +502,7 @@ export const useTrobosStore = create<TrobosStore>()(
           status: "Completed",
           vehiclePlate: state.currentTrip.vehicle.plate,
           riderName: state.currentTrip.passengerTransport.driverName || "Rizky Pratama",
-          driverName: state.currentTrip.towingUnit.operatorName || "Pak Slamet (Towing)",
+          driverName: state.currentTrip.towingUnit.operatorName || "Budi Santoso",
           rating: rating || 5,
         };
 
@@ -416,6 +542,8 @@ export const useTrobosStore = create<TrobosStore>()(
         const baseTrip: ActiveTrip = state.currentTrip || {
           id: `TRB-DEMO-${Math.floor(1000 + Math.random() * 9000)}`,
           status: targetStatus,
+          serviceType: state.serviceType,
+          paymentMethod: state.paymentMethod,
           origin: MOCK_LOCATIONS.current,
           destination: state.selectedDestination,
           carDestination: state.selectedWorkshop,
@@ -433,6 +561,8 @@ export const useTrobosStore = create<TrobosStore>()(
           carProgressPercent: 20,
           userEtaMinutes: 12,
           carEtaMinutes: 25,
+          damagePhotoUrl: state.damagePhotoUrl,
+          damagePhotoNote: state.damagePhotoNote,
           createdAt: new Date().toISOString(),
         };
 
@@ -514,7 +644,7 @@ export const useTrobosStore = create<TrobosStore>()(
         }, 26000);
 
         setTimeout(() => {
-          get().completeTrip(5, ["Towing Sigap", "Penumpang Cepat Tiba"]);
+          get().completeTrip(5, ["Rider Gesit", "Mobil Terparkir Aman"]);
           set({ isDemoRunning: false });
         }, 29000);
       },
@@ -539,6 +669,8 @@ export const useTrobosStore = create<TrobosStore>()(
     {
       name: "trobos_app_storage",
       partialize: (state) => ({
+        theme: state.theme,
+        hasSeenTutorial: state.hasSeenTutorial,
         user: state.user,
         vehicles: state.vehicles,
         activeVehicleId: state.activeVehicleId,
@@ -547,6 +679,8 @@ export const useTrobosStore = create<TrobosStore>()(
         carDestinationType: state.carDestinationType,
         selectedProblemId: state.selectedProblemId,
         passengerCount: state.passengerCount,
+        serviceType: state.serviceType,
+        paymentMethod: state.paymentMethod,
         tripHistory: state.tripHistory,
       }),
     }

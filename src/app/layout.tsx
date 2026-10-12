@@ -29,6 +29,8 @@ export const viewport: Viewport = {
   themeColor: "#0A0F1D",
 };
 
+import { ThemeInitializer } from "@/components/common/ThemeInitializer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,7 +38,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className="scroll-smooth">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased selection:bg-orange-500 selection:text-white">
+      <body className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-orange-500 selection:text-white transition-colors">
+        <ThemeInitializer />
         {children}
       </body>
     </html>

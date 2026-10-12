@@ -37,23 +37,23 @@ export const DesktopSidebar: React.FC = () => {
 
   return (
     <>
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-[calc(100vh-4rem)] sticky top-16 shrink-0 justify-between p-4 overflow-y-auto">
+      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-[calc(100vh-4rem)] sticky top-16 shrink-0 justify-between p-4 overflow-y-auto transition-colors">
         <div className="space-y-4">
           {/* User Snapshot */}
           <Link
             href="/app/profile"
-            className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition group"
+            className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 transition group"
           >
             <img
               src={user.avatar}
               alt={user.name}
-              className="w-9 h-9 rounded-full object-cover border border-slate-200"
+              className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700"
             />
             <div className="overflow-hidden">
-              <h4 className="text-xs font-bold text-slate-900 truncate group-hover:text-[#FF4D00] transition-colors">
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-[#FF4D00] transition-colors">
                 {user.name}
               </h4>
-              <p className="text-[11px] text-slate-500 truncate">{user.phone}</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{user.phone}</p>
             </div>
           </Link>
 
@@ -79,11 +79,11 @@ export const DesktopSidebar: React.FC = () => {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors",
                     isActive
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      ? "bg-slate-900 dark:bg-slate-800 text-white"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
                   )}
                 >
-                  <Icon className={cn("w-4 h-4", isActive ? "text-[#FF4D00]" : "text-slate-400")} />
+                  <Icon className={cn("w-4 h-4", isActive ? "text-[#FF4D00]" : "text-slate-400 dark:text-slate-500")} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -92,17 +92,17 @@ export const DesktopSidebar: React.FC = () => {
         </div>
 
         {/* Bottom Actions: Logout */}
-        <div className="pt-3 border-t border-slate-100 space-y-2">
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
           <button
             type="button"
             onClick={() => setIsLogoutModalOpen(true)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition"
           >
             <LogOut className="w-4 h-4 text-red-500" />
             <span>Keluar</span>
           </button>
 
-          <div className="text-[10px] text-slate-400 text-center">
+          <div className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
             Trobos Mobility • v1.2 Prototype
           </div>
         </div>

@@ -26,7 +26,7 @@ export const BottomNavigation: React.FC = () => {
   return (
     <nav
       aria-label="Navigasi Bawah"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-sm md:hidden pb-safe"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-sm md:hidden pb-safe transition-colors"
     >
       <div className="flex items-center justify-around px-2 py-1.5 max-w-lg mx-auto">
         {navItems.map((item) => {
@@ -41,7 +41,7 @@ export const BottomNavigation: React.FC = () => {
                 "flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-colors min-w-[64px]",
                 isActive
                   ? "text-[#FF4D00] font-bold"
-                  : "text-slate-500 hover:text-slate-900 font-medium"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium"
               )}
             >
               <div className="relative">
