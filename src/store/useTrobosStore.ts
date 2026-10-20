@@ -86,6 +86,7 @@ interface TrobosStore {
   setActiveVehicleId: (id: string) => void;
   addVehicle: (v: Vehicle) => void;
   sendChatMessage: (text: string) => void;
+  sendDriverDemoMessage: (text: string) => void;
   startBooking: (destination?: LocationPoint) => void;
   confirmBooking: () => void;
   returnToBooking: () => void;
@@ -279,24 +280,18 @@ export const useTrobosStore = create<TrobosStore>()(
 
         set((state) => ({ chatMessages: [...state.chatMessages, userMsg] }));
 
-        // Do not deliver stale simulated replies after a logout or trip reset.
-        setTimeout(() => {
-          if (get().currentTrip?.id !== tripId) return;
-          const replies = [
-            "Balasan otomatis demo: informasi Anda tercatat hanya di simulasi browser ini.",
-            "Balasan otomatis demo: pergerakan kendaraan belum berasal dari GPS sungguhan.",
-            "Balasan otomatis demo: untuk bantuan nyata, gunakan layanan resmi yang tersedia.",
-          ];
-          const randomReply = replies[Math.floor(Math.random() * replies.length)];
-          const replyMsg: ChatMessage = {
-            id: `msg-${Date.now() + 1}`,
-            sender: "rider",
-            senderName: "Asisten Demo (Otomatis)",
-            text: randomReply,
-            timestamp: "Baru saja",
-          };
-          set((state) => ({ chatMessages: [...state.chatMessages, replyMsg] }));
-        }, 1200);
+      },
+
+      sendDriverDemoMessage: (text) => {
+        if (!get().currentTrip || !text.trim()) return;
+        const driverMessage: ChatMessage = {
+          id: "driver-demo-" + Date.now() + "-" + Math.random().toString(36).slice(2,7),
+          sender: "driver",
+          senderName: "Operator TROBOS (Demo Browser)",
+          text: text.trim().slice(0, 300),
+          timestamp: "Baru saja",
+        };
+        set(state => ({chatMessages: [...state.chatMessages, driverMessage]}));
       },
 
       startBooking: (destination) => {
@@ -767,6 +762,7 @@ export const useTrobosStore = create<TrobosStore>()(
         paymentMethod: state.paymentMethod,
         tripHistory: state.tripHistory,
         currentTrip: state.currentTrip,
+        chatMessages: state.chatMessages,
       }),
     }
   )
