@@ -58,7 +58,7 @@ export default function VehiclesPage() {
             Kendaraan Terdaftar
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Mobil yang siap dievakuasi oleh Unit Towing Trobos saat mengalami kendala di jalan.
+            Daftar kendaraan contoh untuk menjalankan simulasi Tandem dan Derek & Rescue. Belum ada verifikasi atau operator sungguhan.
           </p>
         </div>
         <button
@@ -80,12 +80,12 @@ export default function VehiclesPage() {
               onClick={() => setActiveVehicleId(v.id)}
               className={`rounded-2xl p-4 border transition cursor-pointer relative shadow-sm ${
                 isActive
-                  ? "bg-white dark:bg-slate-900 border-[#FF4D00] ring-1 ring-[#FF4D00]"
+                  ? "bg-white dark:bg-slate-900 border-[#C27651] ring-1 ring-[#C27651]"
                   : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
               }`}
             >
               {isActive && (
-                <span className="absolute top-3.5 right-3.5 px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-950/60 text-[#FF4D00] dark:text-orange-400 border border-orange-200 dark:border-orange-800 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                <span className="absolute top-3.5 right-3.5 px-2 py-0.5 rounded-full bg-[#C27651]/10 dark:bg-[#C27651]/15 text-[#C27651] dark:text-[#DE9D7A] border border-[#C27651]/30 dark:border-[#C27651]/35 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
                   <Check className="w-3 h-3" /> Mobil Utama
                 </span>
               )}
@@ -123,7 +123,7 @@ export default function VehiclesPage() {
                 </div>
                 <div className="pt-1.5 border-t border-slate-200 dark:border-slate-700 flex justify-between text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">
                   <span className="flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3" /> STNK & Proteksi Aktif
+                    <ShieldCheck className="w-3 h-3" /> Data STNK & proteksi belum diverifikasi
                   </span>
                 </div>
               </div>

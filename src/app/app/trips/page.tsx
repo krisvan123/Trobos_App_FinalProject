@@ -175,7 +175,7 @@ export default function TripsPage() {
                     <span>{trip.riderName}</span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <Truck className="w-3 h-3 text-orange-600 dark:text-orange-400" />
+                    <Truck className="w-3 h-3 text-[#C27651] dark:text-[#DE9D7A]" />
                     <span>{trip.driverName}</span>
                   </span>
                 </div>
@@ -201,7 +201,7 @@ export default function TripsPage() {
             </button>
 
             <div className="flex items-center gap-2 mb-3">
-              <Receipt className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+              <Receipt className="w-4 h-4 text-[#C27651] dark:text-[#DE9D7A]" />
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 Rincian Evakuasi #{selectedTrip.id}
               </h3>
@@ -244,7 +244,7 @@ export default function TripsPage() {
               </div>
               <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-sm">
                 <span>Total Biaya</span>
-                <span className="text-[#FF4D00]">{formatRupiah(selectedTrip.fare)}</span>
+                <span className="text-[#C27651]">{formatRupiah(selectedTrip.fare)}</span>
               </div>
             </div>
 

@@ -33,7 +33,7 @@ export default function NotificationsPage() {
             <div
               className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
                 notif.type === "alert"
-                  ? "bg-orange-50 dark:bg-orange-950/60 text-[#FF4D00]"
+                  ? "bg-[#C27651]/10 dark:bg-[#C27651]/15 text-[#C27651]"
                   : notif.type === "success"
                   ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400"
                   : "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400"
@@ -63,7 +63,7 @@ export default function NotificationsPage() {
             </div>
 
             {!notif.read && (
-              <div className="w-2 h-2 rounded-full bg-[#FF4D00] shrink-0 mt-1.5" />
+              <div className="w-2 h-2 rounded-full bg-[#C27651] shrink-0 mt-1.5" />
             )}
           </div>
         ))}

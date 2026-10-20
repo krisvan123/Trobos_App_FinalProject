@@ -315,7 +315,7 @@ export default function ProfilePage() {
                   type="checkbox"
                   checked={pushEnabled}
                   onChange={(e) => setPushEnabled(e.target.checked)}
-                  className="accent-[#FF4D00] w-4 h-4 cursor-pointer"
+                  className="accent-[#C27651] w-4 h-4 cursor-pointer"
                 />
               </div>
 
@@ -328,7 +328,7 @@ export default function ProfilePage() {
                   type="checkbox"
                   checked={smsAlerts}
                   onChange={(e) => setSmsAlerts(e.target.checked)}
-                  className="accent-[#FF4D00] w-4 h-4 cursor-pointer"
+                  className="accent-[#C27651] w-4 h-4 cursor-pointer"
                 />
               </div>
             </div>
