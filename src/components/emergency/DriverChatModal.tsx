@@ -91,7 +91,7 @@ export const DriverChatModal: React.FC<DriverChatModalProps> = ({
             <div>
               <div className="flex items-center gap-1.5">
                 <h3 className="font-bold text-sm text-slate-900 dark:text-white">
-                  Tim Tandem Trobos
+                  Chat Simulasi TROBOS
                 </h3>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
                   Online
@@ -107,7 +107,7 @@ export const DriverChatModal: React.FC<DriverChatModalProps> = ({
             <button
               onClick={() => setIsCalling(true)}
               className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950 transition"
-              title="Panggilan Telepon"
+              title="Simulasi Panggilan"
               aria-label="Panggilan Telepon"
             >
               <Phone className="w-4 h-4" />
@@ -232,7 +232,7 @@ export const DriverChatModal: React.FC<DriverChatModalProps> = ({
 
             <div className="w-full max-w-xs space-y-3 mb-6">
               <p className="text-[11px] text-slate-400 text-center">
-                Audio suara berkualitas tinggi via jaringan Trobos Direct.
+                Ini animasi panggilan demo. Tidak ada komunikasi telepon sungguhan.
               </p>
               <button
                 type="button"

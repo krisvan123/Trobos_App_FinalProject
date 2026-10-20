@@ -113,7 +113,7 @@ export const WORKSHOP_DESTINATIONS: LocationPoint[] = [
     address: "Jl. Jend. Sudirman Kav. 52-53, Senayan, Jakarta Selatan",
     lat: -6.2244,
     lng: 106.8098,
-    areaTag: "Bengkel Rekanan Resmi (Prioritas Garansi)",
+    areaTag: "Contoh Bengkel — Kemitraan Belum Terverifikasi",
   },
   {
     name: "Toyota Auto2000 Cilandak & Towing Hub",
@@ -366,16 +366,16 @@ export const MOCK_NOTIFICATIONS: AppNotification[] = [
   },
   {
     id: "notif_3",
-    title: "Mobil Tiba di Bengkel Rekanan",
-    message: "Mobil Anda telah diterima oleh tim teknisi resmi di Bengkel Rekanan SCBD.",
+    title: "Contoh: Mobil Tiba di Bengkel",
+    message: "Ini hanya contoh notifikasi perjalanan. Belum ada proses penerimaan kendaraan nyata.",
     timestamp: "2 hari lalu",
     read: true,
     type: "success",
   },
   {
     id: "notif_4",
-    title: "Proteksi Asuransi Evakuasi Aktif",
-    message: "Proses evakuasi dan pengantaran penumpang terproteksi polis komprehensif hingga Rp 1 Miliar.",
+    title: "Ilustrasi Program Proteksi",
+    message: "Proteksi asuransi Rp 1 miliar adalah bagian konsep; belum ada polis aktif pada demo.",
     timestamp: "3 hari lalu",
     read: true,
     type: "info",
@@ -393,14 +393,14 @@ export const FAQS = [
   },
   {
     q: "Apakah mobil mogok saya aman selama proses derek/towing?",
-    a: "Sangat aman. Kami menggunakan truk towing gendong (flatbed) bersertifikasi sehingga roda dan sistem penggerak mobil Anda terlindungi sepenuhnya. Sebelum mobil dinaikkan, dilakukan inspeksi kondisi fisik, verifikasi kode PIN, dan setiap evakuasi dilindungi asuransi all-risk komprehensif hingga Rp 1.000.000.000.",
+    a: "Dalam prototipe ini, towing flatbed, inspeksi PIN, dan perlindungan asuransi merupakan rancangan fitur. Belum ada armada, operator, ataupun polis yang terverifikasi.",
   },
   {
     q: "Apakah mobil saya harus dibawa ke bengkel rekanan?",
-    a: "Tidak wajib, tetapi sangat direkomendasikan. Bengkel rekanan resmi Trobos memberikan prioritas penerimaan unit tanpa antre panjang. Anda juga dapat memilih mengantarkan mobil ke alamat rumah, kantor, atau bengkel langganan pribadi Anda.",
+    a: "Untuk demo, Anda bisa memilih bengkel contoh atau tujuan yang sama dengan penumpang. Kemitraan dan antrean layanan belum dikonfirmasi secara operasional.",
   },
   {
     q: "Bagaimana jika saya sampai ke tujuan terlebih dahulu daripada mobil saya?",
-    a: "Itu adalah keunggulan utama Trobos! Anda tidak perlu ikut menunggu di tepi jalan atau di atas truk towing. Anda bisa langsung melanjutkan aktivitas atau menghadiri pertemuan penting, sementara pergerakan truk towing ke bengkel dapat dipantau secara real-time melalui peta live tracking di aplikasi.",
+    a: "Konsep Trobos memisahkan penanganan penumpang dan kendaraan. Peta asli dapat ditampilkan, tetapi posisi armada masih berupa simulasi dan belum berasal dari GPS driver.",
   },
 ];

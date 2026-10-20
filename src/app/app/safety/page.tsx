@@ -29,7 +29,7 @@ export default function SafetyCenterPage() {
           </h1>
         </div>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          Standar keselamatan derek resmi dan perlindungan komprehensif mobil Anda.
+          Contoh fitur keselamatan dan penanganan insiden untuk prototipe akademik.
         </p>
       </div>
 
@@ -51,14 +51,14 @@ export default function SafetyCenterPage() {
             Mobil Mogok di Titik Berbahaya?
           </div>
           <div className="text-[11px] text-red-700 dark:text-red-400">
-            Hubungi pusat tanggap darurat derek Trobos & patroli jalan raya (PJR).
+            Jika membutuhkan bantuan darurat nyata, hubungi layanan darurat resmi setempat.
           </div>
         </div>
         <button
           onClick={() => setSosActivated(true)}
           className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shrink-0 transition"
         >
-          Aktivasi SOS
+          Bantuan Darurat
         </button>
       </div>
 
@@ -107,7 +107,7 @@ export default function SafetyCenterPage() {
             Pelacakan GPS Simultan
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Pantau posisi perjalanan Anda menuju tujuan serta pergerakan truk derek yang membawa mobil mogok Anda ke bengkel secara real-time.
+            Lihat ilustrasi perjalanan penumpang dan mobil pada peta. Belum ada transmisi GPS unit sebenarnya.
           </p>
           <div className="text-[11px] text-orange-700 dark:text-orange-400 font-semibold flex items-center gap-1 pt-1">
             <CheckCircle className="w-3.5 h-3.5" />
@@ -136,7 +136,7 @@ export default function SafetyCenterPage() {
       {/* Workshop Partnerships */}
       <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between text-xs">
         <div>
-          <div className="text-slate-500 dark:text-slate-400 font-medium">Jaringan Bengkel Resmi Rekanan</div>
+          <div className="text-slate-500 dark:text-slate-400 font-medium">Contoh Tujuan Bengkel</div>
           <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
             Honda Autoland, Toyota Auto2000, & Astra Otoservice 24 Jam
           </div>
@@ -172,7 +172,7 @@ export default function SafetyCenterPage() {
               Pusat Tanggap Darurat Mobil Mogok
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Panggilan darurat akan menghubungkan Anda ke Call Center 24 Jam Rescue Trobos (021-500-888) atau nomor 112.
+              TROBOS belum mengoperasikan call center. Anda dapat mencoba menghubungi nomor darurat resmi 112 jika layanan tersedia di wilayah Anda.
             </p>
             <div className="space-y-2 pt-2">
               <a
