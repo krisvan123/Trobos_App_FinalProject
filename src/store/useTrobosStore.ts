@@ -730,6 +730,22 @@ export const useTrobosStore = create<TrobosStore>()(
     }),
     {
       name: "trobos_app_storage",
+      // Older demos placed the sample SCBD workshop at exactly the same
+      // coordinates as Pacific Place. Recalculate persisted rescue trips so
+      // refreshing the browser does not resurrect the overlapping route.
+      version: 2,
+      migrate: (persisted) => {
+        const previous = persisted as Partial<TrobosStore>;
+        const trip = previous.currentTrip;
+        if (!trip || trip.serviceType !== "MECHANIC") return previous;
+        const workshop = nearestDemoWorkshop(trip.destination, WORKSHOP_DESTINATIONS);
+        if (!workshop) return previous;
+        return {
+          ...previous,
+          selectedWorkshop: workshop,
+          currentTrip: { ...trip, carDestination: workshop, carDestinationType: "WORKSHOP" },
+        };
+      },
       partialize: (state) => ({
         theme: state.theme,
         hasSeenTutorial: state.hasSeenTutorial,

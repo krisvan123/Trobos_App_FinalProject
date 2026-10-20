@@ -150,3 +150,19 @@ forms with a single cohesive booking-first journey experience:
 The public location presets, map routes, prices, PIN and drivers are
 demonstration data. Passing automated tests and production builds does not
 replace testing the deployed app directly on real phone/tablet browsers.
+
+## Distinct rescue routes and independent animation skipping
+
+The Rescue prototype uses **separate endpoint coordinates** for passenger
+destination and illustrative workshop. The workshop fixtures are explicitly
+labelled as unverified demo points; they are not real dispatch partners.
+The passenger route is solid blue, while the tow-truck route is dashed
+copper. Road segments can naturally overlap near the pickup, but they split
+towards their independent destinations. Previously persisted Rescue
+bookings are migrated to the corrected example workshop coordinates.
+
+During the approach phase, users may skip the pickup animation. Once the
+trip has started, **Skip penumpang** and **Skip derek/Skip mobil** advance
+their respective vehicle independently. The remaining animated vehicle
+continues automatically, regardless of which finishes first. The journey
+only completes after both progress values reach 100%.
