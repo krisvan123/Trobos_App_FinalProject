@@ -54,6 +54,7 @@ interface TrobosStore {
   notifications: AppNotification[];
   isDemoRunning: boolean;
   demoTimerId: NodeJS.Timeout | null;
+  demoTimers: ReturnType<typeof setTimeout>[];
   isDriverOnline: boolean;
   hasDriverIncomingOrder: boolean;
   isAuthenticated: boolean;
@@ -100,13 +101,13 @@ interface TrobosStore {
 }
 
 const INITIAL_HANDOVER: HandoverChecklist = {
-  front: true,
-  rear: true,
-  left: true,
-  right: true,
-  interior: true,
+  front: false,
+  rear: false,
+  left: false,
+  right: false,
+  interior: false,
   fuelRecorded: 65,
-  problemConfirmed: true,
+  problemConfirmed: false,
   confirmed: false,
 };
 
@@ -142,7 +143,7 @@ export const useTrobosStore = create<TrobosStore>()(
       carDestinationType: 'WORKSHOP',
       selectedProblemId: 'engine_failure',
       passengerCount: 1,
-      serviceType: 'TANDEM',
+      serviceType: 'MECHANIC',
       paymentMethod: 'GOPAY',
       damagePhotoUrl: null,
       damagePhotoNote: "",
@@ -152,6 +153,7 @@ export const useTrobosStore = create<TrobosStore>()(
       notifications: MOCK_NOTIFICATIONS,
       isDemoRunning: false,
       demoTimerId: null,
+      demoTimers: [],
       isDriverOnline: true,
       hasDriverIncomingOrder: false,
       isAuthenticated: true,
@@ -328,14 +330,45 @@ export const useTrobosStore = create<TrobosStore>()(
       },
 
       confirmBooking: () => {
-        set((state) => {
-          if (!state.currentTrip) return {};
-          return {
-            currentTrip: {
-              ...state.currentTrip,
-              status: "SEARCHING_TANDEM",
+        // Reconcile the order with the final form choices; never dispatch a stale draft.
+        const state = get();
+        const trip = state.currentTrip;
+        if (!trip || trip.status !== "REQUESTED") return;
+        const vehicle = state.vehicles.find((v) => v.id === state.activeVehicleId);
+        if (!vehicle || !Number.isInteger(state.passengerCount) || state.passengerCount < 1 || state.passengerCount > 8) return;
+        const mechanic = state.serviceType === "MECHANIC";
+        const baseFare = mechanic ? 45000 : 35000;
+        const emergencyService = mechanic ? 45000 : 30000;
+        const towingFare = mechanic ? 110000 : 0;
+        const distanceFare = mechanic ? 20000 : 14000;
+        const surgeFare = mechanic ? 0 : 10000;
+        const destination = state.selectedDestination;
+        const carDestination = mechanic && state.carDestinationType === "WORKSHOP" ? state.selectedWorkshop : destination;
+        const problem = BREAKDOWN_PROBLEMS.find((p) => p.id === state.selectedProblemId) || BREAKDOWN_PROBLEMS[0];
+        set({
+          currentTrip: {
+            ...trip,
+            status: "SEARCHING_TANDEM",
+            serviceType: state.serviceType,
+            paymentMethod: state.paymentMethod,
+            vehicle,
+            passengerCount: state.passengerCount,
+            passengerTransport: getPassengerTransportOption(state.passengerCount),
+            problem,
+            destination,
+            carDestination,
+            carDestinationType: mechanic ? state.carDestinationType : "SAME_AS_PASSENGER",
+            damagePhotoUrl: state.damagePhotoUrl,
+            damagePhotoNote: state.damagePhotoNote,
+            handover: { ...INITIAL_HANDOVER },
+            fare: {
+              baseFare, emergencyService, towingFare, distanceFare, surgeFare,
+              totalFare: baseFare + emergencyService + towingFare + distanceFare + surgeFare,
+              distanceKm: 6.8,
+              estimatedPassengerMinutes: 18,
+              estimatedTowingMinutes: 32,
             },
-          };
+          },
         });
       },
 
@@ -380,7 +413,7 @@ export const useTrobosStore = create<TrobosStore>()(
       verifyOtp: (code: string) => {
         const trip = get().currentTrip;
         if (!trip) return false;
-        if (code === trip.otpCode || code === "4821") {
+        if (code === trip.otpCode) {
           set({
             currentTrip: {
               ...trip,
@@ -416,7 +449,7 @@ export const useTrobosStore = create<TrobosStore>()(
               ...state.currentTrip,
               handover: {
                 ...state.currentTrip.handover,
-                fuelRecorded: level,
+                fuelRecorded: Math.max(0, Math.min(100, Number.isFinite(level) ? level : 0)),
               },
             },
           };
@@ -426,6 +459,8 @@ export const useTrobosStore = create<TrobosStore>()(
       confirmVehicleHandover: () => {
         set((state) => {
           if (!state.currentTrip) return {};
+          const { handover } = state.currentTrip;
+          if (!handover.front || !handover.rear || !handover.left || !handover.right || !handover.interior || !handover.problemConfirmed) return {};
           return {
             currentTrip: {
               ...state.currentTrip,
@@ -474,7 +509,8 @@ export const useTrobosStore = create<TrobosStore>()(
           return {
             currentTrip: {
               ...state.currentTrip,
-              status: "VEHICLE_ARRIVED",
+              status: "COMPLETED",
+              userProgressPercent: 100,
               carProgressPercent: 100,
               carEtaMinutes: 0,
             },
@@ -513,11 +549,12 @@ export const useTrobosStore = create<TrobosStore>()(
             rating,
             feedbackTags: tags,
           },
-          tripHistory: [completedItem, ...state.tripHistory],
+          tripHistory: [completedItem, ...state.tripHistory.filter((t) => t.id !== completedItem.id)],
         });
       },
 
       resetToIdle: () => {
+        get().stopAutoSimulation();
         set({
           currentTrip: null,
           isDemoRunning: false,
@@ -603,54 +640,38 @@ export const useTrobosStore = create<TrobosStore>()(
       },
 
       runAutoSimulation: () => {
-        const store = get();
-        store.stopAutoSimulation();
-
+        get().stopAutoSimulation();
+        get().startBooking(MOCK_LOCATIONS.destinations[0]);
+        get().confirmBooking();
         set({ isDemoRunning: true });
-
-        // Step 1: Start requested
-        store.startBooking(MOCK_LOCATIONS.destinations[0]);
-
-        setTimeout(() => {
-          get().confirmBooking(); // SEARCHING_TANDEM
-        }, 1500);
-
-        setTimeout(() => {
-          get().assignTandem(); // TANDEM_ASSIGNED
-        }, 4000);
-
-        setTimeout(() => {
-          get().setApproaching(); // TANDEM_APPROACHING
-        }, 6500);
-
-        setTimeout(() => {
-          get().setArrived(); // TANDEM_ARRIVED (OTP)
-        }, 9500);
-
-        setTimeout(() => {
-          get().verifyOtp("4821"); // VEHICLE_HANDOVER
-        }, 13000);
-
-        setTimeout(() => {
-          get().confirmVehicleHandover(); // TRIP_STARTED
-        }, 16500);
-
-        setTimeout(() => {
-          get().userArrivedAtDest(); // USER_ARRIVED
-        }, 22000);
-
-        setTimeout(() => {
-          get().carArrivedAtDest(); // VEHICLE_ARRIVED
-        }, 26000);
-
-        setTimeout(() => {
-          get().completeTrip(5, ["Rider Gesit", "Mobil Terparkir Aman"]);
-          set({ isDemoRunning: false });
-        }, 29000);
+        const schedule = (fn: () => void, delay: number) => setTimeout(() => {
+          if (get().isDemoRunning) fn();
+        }, delay);
+        const timers = [
+          schedule(() => get().assignTandem(), 2500),
+          schedule(() => get().setApproaching(), 4500),
+          schedule(() => get().setArrived(), 7000),
+          schedule(() => get().verifyOtp(get().currentTrip?.otpCode || ""), 9500),
+          schedule(() => {
+            const handover = get().currentTrip?.handover;
+            if (handover) for (const key of ["front", "rear", "left", "right", "interior", "problemConfirmed"] as const) {
+              if (!handover[key]) get().toggleChecklistItem(key);
+            }
+            get().confirmVehicleHandover();
+          }, 12000),
+          schedule(() => get().userArrivedAtDest(), 16500),
+          schedule(() => get().carArrivedAtDest(), 20500),
+          schedule(() => {
+            get().completeTrip(5, ["Demo selesai"]);
+            set({ isDemoRunning: false, demoTimers: [] });
+          }, 22000),
+        ];
+        set({ demoTimers: timers });
       },
 
       stopAutoSimulation: () => {
-        set({ isDemoRunning: false });
+        get().demoTimers.forEach(clearTimeout);
+        set({ isDemoRunning: false, demoTimers: [] });
       },
 
       toggleDriverOnline: () =>
@@ -682,6 +703,7 @@ export const useTrobosStore = create<TrobosStore>()(
         serviceType: state.serviceType,
         paymentMethod: state.paymentMethod,
         tripHistory: state.tripHistory,
+        currentTrip: state.currentTrip,
       }),
     }
   )

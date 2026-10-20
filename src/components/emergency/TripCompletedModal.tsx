@@ -16,14 +16,9 @@ export const TripCompletedModal: React.FC = () => {
 
   if (!currentTrip) return null;
 
-  const isCompleted = currentTrip.status === "COMPLETED";
-
   const handleFinish = () => {
-    if (!isCompleted) {
-      completeTrip(rating, ["Layanan Cepat", "Armada Nyaman", "Mobil Terjaga"]);
-    } else {
-      resetToIdle();
-    }
+    completeTrip(rating, ["Layanan Cepat", "Armada Nyaman", "Mobil Terjaga"]);
+    resetToIdle();
   };
 
   return (

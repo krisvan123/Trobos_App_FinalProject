@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { useTrobosStore } from "@/store/useTrobosStore";
 import { InteractiveMap } from "@/components/map/InteractiveMap";
@@ -39,7 +39,6 @@ export default function HomePage() {
   const isChatOpen = useTrobosStore((s) => s.isChatOpen);
   const setChatOpen = useTrobosStore((s) => s.setChatOpen);
 
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   // Automatically show tutorial on very first entry for user testing clarity
   useEffect(() => {
@@ -55,7 +54,6 @@ export default function HomePage() {
 
   const handleOpenBooking = () => {
     startBooking();
-    setIsBookingOpen(true);
   };
 
   return (
@@ -177,13 +175,10 @@ export default function HomePage() {
       )}
 
       {/* 4. Active Emergency Flow Overlays */}
-      {(status === "REQUESTED" || isBookingOpen) && (
+      {status === "REQUESTED" && (
         <EmergencyBookingSheet
           isOpen={true}
-          onClose={() => {
-            setIsBookingOpen(false);
-            if (status === "REQUESTED") resetToIdle();
-          }}
+          onClose={resetToIdle}
         />
       )}
 
