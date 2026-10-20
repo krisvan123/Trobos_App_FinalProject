@@ -2,13 +2,14 @@
 
 import React from "react";
 import { useTrobosStore } from "@/store/useTrobosStore";
-import { ArrowRight, Bike, Check, MessageCircle, Star, Truck } from "lucide-react";
+import { ArrowRight, Bike, CarFront, Check, MessageCircle, Star, Truck } from "lucide-react";
 
 export function TandemFoundCard() {
   const trip = useTrobosStore(s => s.currentTrip);
   const setApproaching = useTrobosStore(s => s.setApproaching);
   const setChatOpen = useTrobosStore(s => s.setChatOpen);
   if (!trip) return null;
+  const isTandem = trip.serviceType === "TANDEM";
   return (
     <div className="fixed inset-x-0 bottom-0 sm:bottom-6 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-40 w-full sm:max-w-md px-3 sm:px-4 pb-6 pt-2">
       <section className="trobos-journey-card">
@@ -23,14 +24,14 @@ export function TandemFoundCard() {
         </div>
         <div className="trobos-journey-rows">
           <div className="trobos-journey-row">
-            <div className="trobos-journey-symbol copper"><Truck size={23}/></div>
+            <div className="trobos-journey-symbol copper">{isTandem ? <CarFront size={23}/> : <Truck size={23}/>}</div>
             <div className="trobos-journey-info">
-              <div className="trobos-journey-title"><strong>{trip.towingUnit.truckModel}</strong><span>Demo</span></div>
-              <p>{trip.towingUnit.operatorName} · {trip.towingUnit.plate}</p>
+              <div className="trobos-journey-title"><strong>{isTandem ? trip.vehicle.brand + " " + trip.vehicle.model : trip.towingUnit.truckModel}</strong><span>Demo</span></div>
+              <p>{isTandem ? (trip.tandem?.driver.name || "Driver demo") + " · " + trip.vehicle.plate : trip.towingUnit.operatorName + " · " + trip.towingUnit.plate}</p>
             </div>
           </div>
           <div className="trobos-journey-row">
-            <div className="trobos-journey-symbol sky"><Bike size={23}/></div>
+            <div className="trobos-journey-symbol sky">{trip.passengerTransport.type === "MOTOR" ? <Bike size={23}/> : <CarFront size={23}/>}</div>
             <div className="trobos-journey-info">
               <div className="trobos-journey-title"><strong>{trip.passengerTransport.title}</strong><span>Demo</span></div>
               <p>{trip.passengerTransport.driverName} · {trip.passengerTransport.plate}</p>
@@ -39,7 +40,7 @@ export function TandemFoundCard() {
         </div>
         <div className="trobos-journey-meta"><span><Star size={15}/> Profil contoh</span><span>Tanpa dispatch nyata</span></div>
         <button type="button" onClick={setApproaching} className="trobos-primary-action">
-          <span>Lacak motor menuju pickup</span><ArrowRight size={19}/>
+          <span>Lacak armada menuju pickup</span><ArrowRight size={19}/>
         </button>
         <button type="button" onClick={() => setChatOpen(true)} className="trobos-stage-continue">
           <MessageCircle size={17}/> Buka chat simulasi

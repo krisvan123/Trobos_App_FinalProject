@@ -106,3 +106,6 @@ In backend-free demo mode, the public login page never asks for a real password.
 The registration page only requests a demo display name and acknowledgement,
 not unnecessary passwords or contact details. Real signup/authentication
 is enabled only with the configured Supabase service.
+
+### Service-specific vehicle tracking
+For **Tandem**, the customer car is depicted as a car driven to the passenger destination. For **Rescue**, the second tracked vehicle is a flatbed tow truck heading for the chosen workshop. Both are fictional demo routes; no vehicle telemetry or dispatch is available.

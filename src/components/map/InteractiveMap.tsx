@@ -19,6 +19,7 @@ interface InteractiveMapProps {
   destinationName?: string;
   className?: string;
   passengerKind?: "bike" | "car";
+  carKind?: "tow" | "car";
 }
 
 type Position = { lat: number; lng: number };
@@ -214,6 +215,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   carDestination = MOCK_LOCATIONS.workshops[0],
   className = "",
   passengerKind = "bike",
+  carKind = "tow",
 }) => {
   const theme = useTrobosStore(s => s.theme);
   const setPickupLocation = useTrobosStore(s => s.setPickupLocation);
@@ -295,7 +297,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           markersRef.current.destination = createGoogleMarker(maps, map, passengerPos, "Tujuan penumpang", "passenger");
           markersRef.current.workshop = createGoogleMarker(maps, map, carPos, "Tujuan mobil", "workshop");
           markersRef.current.rider = createGoogleMarker(maps, map, originPos, "Armada penumpang simulasi", passengerKind);
-          markersRef.current.towing = createGoogleMarker(maps, map, originPos, "Towing simulasi", "tow");
+          markersRef.current.towing = createGoogleMarker(maps, map, originPos,
+            carKind === "tow" ? "Towing simulasi" : "Mobil pelanggan simulasi", carKind);
           markersRef.current.rider.addListener("click", () => setFollowTarget("passenger"));
           markersRef.current.towing.addListener("click", () => setFollowTarget("tow"));
           const resolveRoad = (end: Position) => routeFromGoogle(originPos, end).catch(() => guidePath(originPos, end));
@@ -364,7 +367,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           markersRef.current.destination = L.marker([passengerDestination.lat, passengerDestination.lng], { icon: icon("passenger"), zIndexOffset: 100 }).addTo(map);
           markersRef.current.workshop = L.marker([carDestination.lat, carDestination.lng], { icon: icon("workshop"), zIndexOffset: 100 }).addTo(map);
           markersRef.current.rider = L.marker([origin.lat, origin.lng], { icon: icon(passengerKind), zIndexOffset: 120 });
-          markersRef.current.towing = L.marker([origin.lat, origin.lng], { icon: icon("tow"), zIndexOffset: 125 });
+          markersRef.current.towing = L.marker([origin.lat, origin.lng], { icon: icon(carKind), zIndexOffset: 125 });
           markersRef.current.rider.on("click", () => setFollowTarget("passenger"));
           markersRef.current.towing.on("click", () => setFollowTarget("tow"));
           let passengerRoute = guidePath(originPos, passengerPos);
@@ -405,7 +408,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
     void setup();
     return () => { cancelled = true; cleanup(); };
-  }, [google, dark, origin.lat, origin.lng, passengerDestination.lat, passengerDestination.lng, carDestination.lat, carDestination.lng, passengerKind]);
+  }, [google, dark, origin.lat, origin.lng, passengerDestination.lat, passengerDestination.lng, carDestination.lat, carDestination.lng, passengerKind, carKind]);
 
   useEffect(() => {
     if (!engine || !mapRef.current) return;
@@ -423,10 +426,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     if (approaching) moveVehicle(markers.rider, route.approach, 0, passengerKind, engine);
     else if (tripRunning) {
       moveVehicle(markers.rider, route.passenger, userProgress, passengerKind, engine);
-      moveVehicle(markers.towing, route.towing, carProgress, "tow", engine);
+      moveVehicle(markers.towing, route.towing, carProgress, carKind, engine);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [engine, approaching, tripRunning, passengerKind]);
+  }, [engine, approaching, tripRunning, passengerKind, carKind]);
 
   useEffect(() => {
     if (!engine || (!tripRunning && !approaching)) return;
@@ -459,7 +462,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         // at a lower rate to keep React renders and phone battery usage down.
         if (engineRef.current) {
           moveVehicle(markersRef.current.rider, routesRef.current.passenger, up, passengerKind, engineRef.current);
-          moveVehicle(markersRef.current.towing, routesRef.current.towing, cp, "tow", engineRef.current);
+          moveVehicle(markersRef.current.towing, routesRef.current.towing, cp, carKind, engineRef.current);
         }
         if (followRef.current !== "off" && mapRef.current && now - lastPan > 950) {
           const route = followRef.current === "tow" ? routesRef.current.towing : routesRef.current.passenger;
@@ -481,7 +484,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return () => cancelAnimationFrame(frame);
     // Current progress is sampled only when the trip phase changes, not on every animation tick.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [engine, status, setArrived, updateLiveProgress, userArrivedAtDest, carArrivedAtDest, passengerKind]);
+  }, [engine, status, setArrived, updateLiveProgress, userArrivedAtDest, carArrivedAtDest, passengerKind, carKind]);
 
   // Focus immediately on the selected vehicle; subsequent frames keep it in view.
   useEffect(() => {
@@ -555,8 +558,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         {(approaching || tripRunning) && <button type="button" onClick={() => setFollowTarget(followTarget === "off" ? "passenger" : followTarget === "passenger" ? "tow" : "off")}
           className={"trobos-map-control " + (followTarget !== "off" ? "text-[#C27651] ring-2 ring-[#C27651]/40" : "")}
           aria-pressed={followTarget !== "off"}
-          aria-label={followTarget === "off" ? "Ikuti kendaraan penumpang" : followTarget === "passenger" ? "Alihkan kamera ke towing" : "Matikan kamera mengikuti kendaraan"}
-          title={followTarget === "off" ? "Ikuti penumpang" : followTarget === "passenger" ? "Ikuti towing" : "Matikan ikuti kendaraan"}>
+          aria-label={followTarget === "off" ? "Ikuti kendaraan penumpang" : followTarget === "passenger" ? (carKind === "tow" ? "Alihkan kamera ke towing" : "Alihkan kamera ke mobil pelanggan") : "Matikan kamera mengikuti kendaraan"}
+          title={followTarget === "off" ? "Ikuti penumpang" : followTarget === "passenger" ? (carKind === "tow" ? "Ikuti towing" : "Ikuti mobil") : "Matikan ikuti kendaraan"}>
           <Navigation2 size={19}/>
         </button>}
       </div>
@@ -564,7 +567,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         <div className="absolute z-10 top-[235px] right-4 lg:top-[164px] pointer-events-none">
           <span className="rounded-xl bg-white/95 dark:bg-[#1A2B3B]/95 text-slate-800 dark:text-slate-100 border border-white/50 dark:border-white/10 px-3 py-2 text-[11px] font-semibold shadow-md">
             <Navigation2 size={12} className="inline mr-1"/>
-            Mengikuti {followTarget === "tow" ? "towing" : "penumpang"}
+            Mengikuti {followTarget === "tow" ? (carKind === "tow" ? "towing" : "mobil") : "penumpang"}
           </span>
         </div>
       )}

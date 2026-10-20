@@ -73,6 +73,7 @@ export default function HomePage() {
           passengerDestination={currentTrip?.destination || selectedDestination}
           carDestination={currentTrip?.carDestination || (serviceType === "MECHANIC" ? selectedWorkshop : selectedDestination)}
           passengerKind={currentTrip?.passengerTransport.type === "MOTOR" ? "bike" : "car"}
+          carKind={(currentTrip?.serviceType || serviceType) === "TANDEM" ? "car" : "tow"}
           userProgress={currentTrip?.userProgressPercent ?? 0}
           carProgress={currentTrip?.carProgressPercent ?? 0}
         />

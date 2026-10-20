@@ -18,6 +18,7 @@ export function DualJourneyTracker() {
   const c = Math.min(100, Math.max(0, currentTrip.carProgressPercent ?? 0));
   const passengerDone = currentTrip.status === "USER_ARRIVED" || p === 100;
   const transport = currentTrip.passengerTransport;
+  const isTandem = currentTrip.serviceType === "TANDEM";
 
   return (
     <div className="fixed inset-x-0 bottom-0 sm:bottom-6 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-40 w-full sm:max-w-md px-3 sm:px-4 pb-6 pt-2">
@@ -45,11 +46,11 @@ export function DualJourneyTracker() {
           </button>
           <button type="button" onClick={() => setMapFocus("tow")}
             aria-pressed={mapFocus === "tow"}
-            aria-label="Fokuskan peta ke kendaraan towing"
+            aria-label={isTandem ? "Fokuskan peta ke mobil pelanggan" : "Fokuskan peta ke kendaraan towing"}
             className={"trobos-journey-row trobos-focus-row " + (mapFocus === "tow" ? "is-following" : "")}>
-            <div className="trobos-journey-symbol copper"><Truck size={22}/></div>
+            <div className="trobos-journey-symbol copper">{isTandem ? <CarFront size={22}/> : <Truck size={22}/>}</div>
             <div className="trobos-journey-info">
-              <div className="trobos-journey-title"><strong>Mobil & towing</strong><span>{mapFocus === "tow" ? "● Ikuti" : c === 100 ? "Tiba" : c + "%"}</span></div>
+              <div className="trobos-journey-title"><strong>{isTandem ? "Mobil & driver" : "Mobil & towing"}</strong><span>{mapFocus === "tow" ? "● Ikuti" : c === 100 ? "Tiba" : c + "%"}</span></div>
               <p>{currentTrip.carDestination.name}</p>
               <div className="trobos-progress-track"><i style={{width:c + "%",background:"#C27651"}}/></div>
             </div>
