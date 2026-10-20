@@ -9,10 +9,26 @@ export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const hasBackend = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    setError("");
+    if (!hasBackend) { setError("Pemulihan akun tidak tersedia dalam mode demo tanpa backend."); return; }
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "recover", email }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Permintaan gagal.");
+      setSent(true);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Pemulihan gagal.");
+    } finally { setLoading(false); }
   };
 
   return (
@@ -37,9 +53,9 @@ export default function ForgotPasswordPage() {
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-bold text-slate-900">Email Terkirim!</h3>
+              <h3 className="text-sm font-bold text-slate-900">Periksa Email Anda</h3>
               <p className="text-xs text-slate-500">
-                Tautan verifikasi telah dikirim ke <strong>{email}</strong>.
+                Jika email <strong>{email}</strong> terdaftar, petunjuk pemulihan akan dikirim oleh penyedia autentikasi.
               </p>
               <button
                 onClick={() => router.push("/login")}
@@ -50,6 +66,7 @@ export default function ForgotPasswordPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && <p role="alert" className="text-xs text-red-700 bg-red-50 rounded-xl p-3">{error}</p>}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Email Akun
@@ -69,9 +86,10 @@ export default function ForgotPasswordPage() {
 
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full py-3 rounded-xl bg-[#FF4D00] hover:bg-[#E64400] text-white font-bold text-xs shadow-sm transition"
               >
-                Kirim Tautan Pemulihan
+                {loading ? "Mengirim..." : "Kirim Tautan Pemulihan"}
               </button>
 
               <div className="pt-1 text-center">

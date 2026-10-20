@@ -34,6 +34,38 @@ export async function POST(request: NextRequest) {
     response.cookies.delete("trobos_refresh");
     return response;
   }
+  if (input.action === "recover") {
+    if (typeof input.email !== "string" || !/^\\S+@\\S+\\.\\S+$/.test(input.email)) {
+      return NextResponse.json({ error: "Email tidak valid" }, { status: 400 });
+    }
+    try {
+      const redirect = encodeURIComponent(request.nextUrl.origin + "/reset-password");
+      await supabaseRequest("/auth/v1/recover?redirect_to=" + redirect, {
+        method: "POST", body: JSON.stringify({ email: input.email }),
+      });
+      // Do not reveal whether an account exists.
+      return NextResponse.json({ ok: true });
+    } catch {
+      return NextResponse.json({ error: "Layanan email pemulihan tidak tersedia" }, { status: 502 });
+    }
+  }
+  if (input.action === "reset") {
+    if (typeof input.accessToken !== "string" || input.accessToken.length < 30 ||
+      typeof input.password !== "string" || input.password.length < 8 || input.password.length > 128) {
+      return NextResponse.json({ error: "Tautan tidak valid atau password kurang dari 8 karakter" }, { status: 400 });
+    }
+    try {
+      const verify = await supabaseRequest("/auth/v1/user", {}, input.accessToken);
+      if (!verify.ok) return NextResponse.json({ error: "Tautan pemulihan kedaluwarsa" }, { status: 401 });
+      const update = await supabaseRequest("/auth/v1/user", {
+        method: "PUT", body: JSON.stringify({ password: input.password }),
+      }, input.accessToken);
+      if (!update.ok) return NextResponse.json({ error: "Gagal mengubah password" }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    } catch {
+      return NextResponse.json({ error: "Layanan pemulihan tidak tersedia" }, { status: 502 });
+    }
+  }
   if (!["login","register"].includes(input.action) ||
       typeof input.email !== "string" || !/^\S+@\S+\.\S+$/.test(input.email) ||
       typeof input.password !== "string" || input.password.length < 8 || input.password.length > 128) {
