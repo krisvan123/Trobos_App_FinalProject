@@ -8,6 +8,7 @@ import {
   Route, ShieldCheck, Sun, Truck, Users, Wrench, Zap,
 } from "lucide-react";
 import { useTrobosStore } from "@/store/useTrobosStore";
+import { InteractiveMap } from "@/components/map/InteractiveMap";
 import { BREAKDOWN_PROBLEMS, DEMO_PICKUP_POINTS, MOCK_LOCATIONS, WORKSHOP_DESTINATIONS, getPassengerTransportOption } from "@/lib/mockData";
 import { rankDemoWorkshops } from "@/lib/workshopRecommendation";
 import { calculateDemoFare } from "@/lib/pricing";
@@ -32,6 +33,8 @@ export function BookingPlanner() {
   const theme = useTrobosStore(s => s.theme);
   const toggleTheme = useTrobosStore(s => s.toggleTheme);
   const [locationNotice, setLocationNotice] = useState("");
+  const [mapSelection, setMapSelection] = useState<"pickup"|"destination"|null>(null);
+  const [locationSearch, setLocationSearch] = useState("");
 
   const ranked = rankDemoWorkshops(destination, WORKSHOP_DESTINATIONS);
   const workshop = ranked[0]?.workshop || WORKSHOP_DESTINATIONS[0];
@@ -41,6 +44,11 @@ export function BookingPlanner() {
     carDestination: serviceType === "MECHANIC" ? workshop : destination, passengerCount,
   });
   const pickupPreset = DEMO_PICKUP_POINTS.some(p => p.name === pickup.name);
+  const destinationPreset = MOCK_LOCATIONS.destinations.some(p=>p.name===destination.name);
+  const locationResults = [...DEMO_PICKUP_POINTS,...MOCK_LOCATIONS.destinations]
+    .filter((p,i,all)=>all.findIndex(x=>x.lat===p.lat&&x.lng===p.lng)===i)
+    .filter(p => (p.name+" "+p.address).toLowerCase().includes(locationSearch.trim().toLowerCase()))
+    .slice(0,7);
 
   const requestDeviceLocation = () => {
     if (!navigator.geolocation) {
@@ -120,19 +128,28 @@ export function BookingPlanner() {
               </div>
               <div className="tr-new-route-field">
                 <label htmlFor="tr-new-destination">Tujuan penumpang</label>
-                <select id="tr-new-destination" value={destination.name}
+                <select id="tr-new-destination" value={destinationPreset ? destination.name : "__custom"}
                   onChange={e => {
                     const found=MOCK_LOCATIONS.destinations.find(p=>p.name===e.target.value);
                     if(found)setDestination(found);
                   }}>
+                  {!destinationPreset && <option value="__custom">{destination.name}</option>}
                   {MOCK_LOCATIONS.destinations.map(item => <option key={item.name} value={item.name}>{item.name}</option>)}
                 </select>
                 <small>{destination.address}</small>
               </div>
             </div>
-            <button type="button" onClick={requestDeviceLocation} className="tr-new-location-action">
-              <LocateFixed size={16}/> Gunakan lokasi perangkat <ArrowRight size={15}/>
-            </button>
+            <div className="tr-new-location-actions">
+              <button type="button" onClick={requestDeviceLocation} className="tr-new-location-action">
+                <LocateFixed size={16}/> Lokasi perangkat <ArrowRight size={15}/>
+              </button>
+              <button type="button" className="tr-new-location-action" onClick={()=>{setLocationSearch("");setMapSelection("pickup");}}>
+                <MapPin size={16}/> Pilih bantuan di peta <ArrowRight size={15}/>
+              </button>
+              <button type="button" className="tr-new-location-action" onClick={()=>{setLocationSearch("");setMapSelection("destination");}}>
+                <Route size={16}/> Pilih tujuan di peta <ArrowRight size={15}/>
+              </button>
+            </div>
             {locationNotice && <p className="tr-new-info-message" role="status">{locationNotice}</p>}
 
             {serviceType === "MECHANIC" && (
@@ -210,6 +227,30 @@ export function BookingPlanner() {
           <div className="tr-new-visual-bottom"><button type="button" onClick={()=>setTutorialOpen(true)}><CircleHelp size={17}/> Bagaimana TROBOS bekerja?</button><Link href="/app/trips"><Clock3 size={16}/> Riwayat demo</Link></div>
         </aside>
       </div>
+      {mapSelection && <div className="tr-location-picker-modal" role="dialog" aria-modal="true" aria-label="Pilih lokasi di peta">
+        <div className="tr-location-picker-shell">
+          <div className="tr-location-picker-head">
+            <div><span>PILIH LOKASI · SIMULASI</span><h2>{mapSelection === "pickup" ? "Titik bantuan" : "Tujuan penumpang"}</h2></div>
+            <button type="button" onClick={()=>setMapSelection(null)}>Selesai / Tutup</button>
+          </div>
+          <div className="tr-location-search">
+            <label htmlFor="tr-search-address">Cari dari contoh lokasi Jakarta</label>
+            <input id="tr-search-address" value={locationSearch} onChange={e=>setLocationSearch(e.target.value)}
+              placeholder="Cari nama tempat atau kawasan..." autoComplete="off"/>
+            {locationSearch.trim() && <div className="tr-location-search-results">
+              {locationResults.length ? locationResults.map(place=><button key={place.name} type="button" onClick={()=>{
+                if(mapSelection==="pickup")setPickup(place);else setDestination(place);
+                setMapSelection(null);
+              }}>{place.name}<small>{place.address}</small></button>) : <p>Tidak ada lokasi contoh yang cocok. Ketuk lokasi di peta untuk memilih koordinat.</p>}
+            </div>}
+          </div>
+          <div className="tr-location-picker-map">
+            <InteractiveMap status="IDLE" origin={pickup} passengerDestination={destination}
+              carDestination={serviceType==="MECHANIC"?workshop:destination} selectionMode={mapSelection}/>
+          </div>
+          <p>Pratinjau rute dan titik belum terverifikasi. Untuk lokasi bebas, animasi rute mungkin berupa ilustrasi.</p>
+        </div>
+      </div>}
     </div>
   );
 }

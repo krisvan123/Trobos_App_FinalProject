@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Crosshair, Layers3, MapPin, Navigation2, Route } from "lucide-react";
 import { useTrobosStore } from "@/store/useTrobosStore";
 import type { LocationPoint, TripStatus } from "@/types/trobos";
-import { MOCK_LOCATIONS } from "@/lib/mockData";
+import { MOCK_LOCATIONS, DEMO_PICKUP_POINTS, WORKSHOP_DESTINATIONS } from "@/lib/mockData";
 import { vehicleSvg, waypointSvg, type MovingVehicle, type Waypoint } from "@/lib/mapVehicleIcons";
 import { prepareRoute, sampleRoute, sampleHeading, type PreparedRoute } from "@/lib/routeMotion";
 
@@ -20,6 +20,7 @@ interface InteractiveMapProps {
   className?: string;
   passengerKind?: "bike" | "car";
   carKind?: "tow" | "car";
+  selectionMode?: "pickup" | "destination";
 }
 
 type Position = { lat: number; lng: number };
@@ -141,7 +142,8 @@ function googlePath(map: any, maps: any, coords: Position[], color: string, dash
   });
 }
 const knownDemoPoints: Position[] = [
-  MOCK_LOCATIONS.current, ...MOCK_LOCATIONS.destinations, ...MOCK_LOCATIONS.workshops,
+  MOCK_LOCATIONS.current, ...DEMO_PICKUP_POINTS, ...MOCK_LOCATIONS.destinations,
+  ...WORKSHOP_DESTINATIONS, ...MOCK_LOCATIONS.workshops,
 ];
 
 function isPublicDemoPoint(point: Position): boolean {
@@ -155,7 +157,7 @@ async function routeFromOsrmDemo(start: Position, end: Position): Promise<Positi
   // This free demo endpoint is used only for preset public Jakarta examples;
   // it is not suitable for a commercial or emergency dispatch service.
   if (!isPublicDemoPoint(start) || !isPublicDemoPoint(end)) throw new Error("Hanya lokasi demo");
-  const cacheKey = "trobos-road-demo-v1:" + [start.lat,start.lng,end.lat,end.lng].join(",");
+  const cacheKey = "trobos-road-demo-v2:" + [start.lat,start.lng,end.lat,end.lng].join(",");
   try {
     const cached = window.sessionStorage.getItem(cacheKey);
     if (cached) return JSON.parse(cached) as Position[];
@@ -230,9 +232,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   className = "",
   passengerKind = "bike",
   carKind = "tow",
+  selectionMode,
 }) => {
   const theme = useTrobosStore(s => s.theme);
   const setPickupLocation = useTrobosStore(s => s.setPickupLocation);
+  const setSelectedDestination = useTrobosStore(s => s.setSelectedDestination);
   const setArrived = useTrobosStore(s => s.setArrived);
   const updateLiveProgress = useTrobosStore(s => s.updateLiveProgress);
   const userArrivedAtDest = useTrobosStore(s => s.userArrivedAtDest);
@@ -252,7 +256,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const setFollowTarget = useTrobosStore(s => s.setMapFocus);
   const followRef = useRef(followTarget);
   useEffect(() => { followRef.current = followTarget; }, [followTarget]);
-  const [routeMode, setRouteMode] = useState<"roads" | "illustration">("illustration");
+  const [routeMode, setRouteMode] = useState<"roads" | "mixed" | "illustration">("illustration");
+  const [selectedPoint, setSelectedPoint] = useState<Position | null>(null);
   const [recenterId, setRecenterId] = useState(0);
   const dark = theme === "dark";
   const google = Boolean(googleKey);
@@ -305,6 +310,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             fullscreenControl: false, zoomControl: false, gestureHandling: "greedy",
           });
           mapRef.current = map;
+          if (selectionMode) {
+            map.addListener("click", (event: any) => {
+              const clicked = event.latLng;
+              if (clicked) setSelectedPoint({lat: clicked.lat(), lng: clicked.lng()});
+            });
+          }
           // Manual dragging should never fight against automatic follow.
           map.addListener("dragstart", () => setFollowTarget("off"));
           markersRef.current.pickup = createGoogleMarker(maps, map, originPos, "Titik bantuan", "pickup");
@@ -315,19 +326,21 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             carKind === "tow" ? "Towing simulasi" : "Mobil pelanggan simulasi", carKind);
           markersRef.current.rider.addListener("click", () => setFollowTarget("passenger"));
           markersRef.current.towing.addListener("click", () => setFollowTarget("tow"));
-          const resolveRoad = (end: Position) => routeFromGoogle(originPos, end).catch(() => guidePath(originPos, end));
-          const [passengerRoute, towingRoute, approachRoute] = await Promise.all([
-            resolveRoad(passengerPos),
-            resolveRoad(carPos),
-            routeFromGoogle(demoApproach(originPos)[0], originPos).catch(() => demoApproach(originPos)),
+          const [pRoad,cRoad,aRoad] = await Promise.all([
+            routeFromGoogle(originPos, passengerPos).catch(() => null),
+            routeFromGoogle(originPos, carPos).catch(() => null),
+            routeFromGoogle(demoApproach(originPos)[0], originPos).catch(() => null),
           ]);
+          const passengerRoute = pRoad || guidePath(originPos, passengerPos);
+          const towingRoute = cRoad || guidePath(originPos, carPos);
+          const approachRoute = aRoad || demoApproach(originPos);
           if (cancelled) return;
           routesRef.current = {
             passenger: prepareRoute(passengerRoute),
             towing: prepareRoute(towingRoute),
             approach: prepareRoute(approachRoute),
           };
-          setRouteMode(passengerRoute.length > 5 && towingRoute.length > 5 ? "roads" : "illustration");
+          setRouteMode(pRoad && cRoad ? "roads" : pRoad || cRoad ? "mixed" : "illustration");
           objects.push(googlePath(map, maps, passengerRoute, PASSENGER));
           objects.push(googlePath(map, maps, towingRoute, TOWING, true));
           fitPointsGoogle(map, maps, [originPos, passengerPos, carPos], hostRef.current);
@@ -335,7 +348,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           const L = w.L!;
           map = L.map(hostRef.current, { zoomControl: false, attributionControl: true, preferCanvas: true });
           mapRef.current = map;
-          map.on("dragstart", () => setFollowTarget("off"));
+          if (selectionMode) {
+            map.on("click", (event: any) => {
+              setSelectedPoint({lat: event.latlng.lat, lng: event.latlng.lng});
+            });
+          }
+          map.on("dragstart", () => setFollowTarget("off");
           // Keyless default: real OSM street tiles. Dark appearance is a CSS
           // filter on the raster tiles ONLY, leaving vehicle markers colorful.
           // A separately configured CARTO key enables native CARTO dark/light.
@@ -387,14 +405,22 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           let passengerRoute = guidePath(originPos, passengerPos);
           let towingRoute = guidePath(originPos, carPos);
           const approachRoute = demoApproach(originPos);
-          // Respect the OSRM demo server's <=1 request/second guidance.
-          // Only public fixture coordinates are allowed; never forward browser GPS.
-          if (isPublicDemoPoint(originPos)) {
+          // Respect the public OSRM demo server guidance, and never forward
+          // the user's arbitrary GPS or map-selected coordinates.
+          let passengerRoad = false, towingRoad = false;
+          if (isPublicDemoPoint(originPos) && isPublicDemoPoint(passengerPos)) {
             try {
               passengerRoute = await routeFromOsrmDemo(originPos, passengerPos);
-              await new Promise(resolve => window.setTimeout(resolve, 1100));
+              passengerRoad = true;
+            } catch { /* Explicitly fall back to illustrative geometry for this leg. */ }
+          }
+          if (isPublicDemoPoint(originPos) && isPublicDemoPoint(carPos)) {
+            await new Promise(resolve => window.setTimeout(resolve, 1100));
+            if (cancelled) return;
+            try {
               towingRoute = await routeFromOsrmDemo(originPos, carPos);
-            } catch { /* Show an explicitly labelled illustrative route instead. */ }
+              towingRoad = true;
+            } catch { /* Failure of this leg doesn't discard the passenger route. */ }
           }
           if (cancelled) return;
           routesRef.current = {
@@ -409,7 +435,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           layersRef.current = [pLayer, cLayer];
           fitPointsLeaflet(map, L, [originPos, passengerPos, carPos], hostRef.current, false);
           L.control.zoom({ position: "bottomright" }).addTo(map);
-          setRouteMode(passengerRoute.length > 5 && towingRoute.length > 5 ? "roads" : "illustration");
+          setRouteMode(passengerRoad && towingRoad ? "roads" : passengerRoad || towingRoad ? "mixed" : "illustration");
           // Prevent partial tile layout after the flex container finishes animating.
           window.setTimeout(() => { if (!cancelled) map.invalidateSize(); }, 150);
         }
@@ -424,7 +450,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
     void setup();
     return () => { cancelled = true; cleanup(); };
-  }, [google, dark, origin.lat, origin.lng, passengerDestination.lat, passengerDestination.lng, carDestination.lat, carDestination.lng, passengerKind, carKind]);
+  }, [google, dark, origin.lat, origin.lng, passengerDestination.lat, passengerDestination.lng, carDestination.lat, carDestination.lng, passengerKind, carKind, selectionMode]);
 
   useEffect(() => {
     if (!engine || !mapRef.current) return;
@@ -566,10 +592,28 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       <div className="absolute z-10 left-4 bottom-[min(22rem,45%)] lg:bottom-5 pointer-events-none max-w-[260px]">
         <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/90 dark:bg-[#192633]/95 text-[#334251] dark:text-[#E5EDF2] text-[11px] font-semibold shadow-lg backdrop-blur-xl border border-white/65 dark:border-white/10">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4C9B81]"/>
-          {engine === "google" ? "Google Maps" : "OpenStreetMap"} · {routeMode === "roads" ? (engine === "google" ? "Routes API" : "OSRM demo") : "Rute ilustrasi"}
+          {engine === "google" ? "Google Maps" : "OpenStreetMap"} · {routeMode === "roads" ? "Dua rute jalan" : routeMode === "mixed" ? "Sebagian rute ilustrasi" : "Rute ilustrasi"}
         </span>
         {message && <p role="status" className="mt-2 rounded-xl px-3 py-2 bg-white/95 dark:bg-[#192633]/95 text-xs text-slate-700 dark:text-slate-200">{message}</p>}
       </div>
+      {selectionMode && <div className="tr-map-pick-overlay" role="region" aria-label="Pilih titik di peta">
+        <strong>{selectionMode === "pickup" ? "Tentukan titik bantuan" : "Tentukan tujuan penumpang"}</strong>
+        <p>Ketuk pada jalan atau area di peta, lalu konfirmasi lokasinya. Koordinat pilihan tidak dikirim ke layanan routing publik.</p>
+        {selectedPoint && <>
+          <small>{selectedPoint.lat.toFixed(5)}, {selectedPoint.lng.toFixed(5)}</small>
+          <button type="button" onClick={() => {
+            const point = {
+              name: selectionMode === "pickup" ? "Titik bantuan pilihan" : "Tujuan pilihan",
+              address: selectedPoint.lat.toFixed(5) + ", " + selectedPoint.lng.toFixed(5) + " (pilihan peta, demo)",
+              lat:selectedPoint.lat, lng:selectedPoint.lng,
+            };
+            if (selectionMode === "pickup") setPickupLocation(point);
+            else setSelectedDestination(point);
+            setMessage("Titik berhasil dipilih. Rute GPS atau titik pilihan adalah ilustrasi jika penyedia routing tidak tersedia.");
+            setSelectedPoint(null);
+          }}>Gunakan titik ini <Navigation2 size={15}/></button>
+        </>}
+      </div>}
       <div className="absolute z-20 top-[92px] right-4 lg:top-5 flex flex-col gap-2">
         <button type="button" onClick={() => { setFollowTarget("off"); setRecenterId(x => x + 1); }}
           className="trobos-map-control" aria-label="Tampilkan seluruh rute" title="Tampilkan seluruh rute">
