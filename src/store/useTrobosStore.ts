@@ -108,6 +108,15 @@ interface TrobosStore {
   markNotificationAsRead: (id: string) => void;
 }
 
+const DEMO_GUEST: UserProfile = {
+  ...MOCK_USER,
+  name: "Pengunjung Demo",
+  email: "",
+  phone: "",
+  rating: 0,
+  emergencyContact: { name: "Belum diatur", phone: "", relation: "-" },
+};
+
 const INITIAL_HANDOVER: HandoverChecklist = {
   front: false,
   rear: false,
@@ -144,7 +153,7 @@ export const useTrobosStore = create<TrobosStore>()(
       isTutorialOpen: false,
       isChatOpen: false,
       mapFocus: "off",
-      user: MOCK_USER,
+      user: DEMO_GUEST,
       pickupLocation: MOCK_LOCATIONS.current,
       vehicles: MOCK_VEHICLES,
       activeVehicleId: MOCK_VEHICLES[0].id,
@@ -204,10 +213,10 @@ export const useTrobosStore = create<TrobosStore>()(
           isAuthenticated: true,
           user: {
             ...state.user,
+            name: name || state.user.name || "Pengunjung Demo",
             email: email || "",
             phone: "",
             emergencyContact: { name: "Belum disetel", relation: "-", phone: "" },
-            ...(name ? { name } : {}),
           },
         }));
       },
@@ -221,7 +230,7 @@ export const useTrobosStore = create<TrobosStore>()(
         set({
           isAuthenticated: false,
           currentTrip: null,
-          user: MOCK_USER,
+          user: DEMO_GUEST,
           vehicles: MOCK_VEHICLES,
           activeVehicleId: MOCK_VEHICLES[0].id,
           pickupLocation: MOCK_LOCATIONS.current,

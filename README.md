@@ -109,3 +109,21 @@ is enabled only with the configured Supabase service.
 
 ### Service-specific vehicle tracking
 For **Tandem**, the customer car is depicted as a car driven to the passenger destination. For **Rescue**, the second tracked vehicle is a flatbed tow truck heading for the chosen workshop. Both are fictional demo routes; no vehicle telemetry or dispatch is available.
+
+## Booking-first prototype (October 2026)
+
+Guest booking and tracking are available without registration. The dashboard
+begins with a **trip planner rather than a map**; after the user confirms
+the demo booking, the full-screen map and tracking sheet appear. Users may
+choose from several illustrative Jakarta pickups or explicitly authorize
+device GPS. Destination options are independent of the pickup.
+
+For Rescue, the car is automatically assigned to the **geographically nearest
+example workshop from the passenger destination**. This compares preset
+latitude/longitude values by straight-line distance, not verified business
+locations, road ETA, operating hours or live capacity. The fallback map may
+illustrate routes if real road routing is unavailable.
+
+Search and travel animations have been slowed down for demonstration.
+Sign-in and registration are optional; the Supabase demo trip archive is
+used only for a signed-in session when Supabase is configured.
