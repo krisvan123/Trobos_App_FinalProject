@@ -161,7 +161,7 @@ export const useTrobosStore = create<TrobosStore>()(
       demoTimers: [],
       isDriverOnline: true,
       hasDriverIncomingOrder: false,
-      isAuthenticated: true,
+      isAuthenticated: false,
 
       toggleTheme: () => {
         const nextTheme = get().theme === 'light' ? 'dark' : 'light';
@@ -196,7 +196,7 @@ export const useTrobosStore = create<TrobosStore>()(
       login: (email, name) => {
         set((state) => ({
           isAuthenticated: true,
-          user: { ...state.user, ...(email ? { email } : {}), ...(name ? { name } : {}) },
+          user: { ...state.user, ...(email ? { email, phone: "", emergencyContact: { name: "Belum disetel", relation: "-", phone: "" } } : {}), ...(name ? { name } : {}) },
         }));
       },
 

@@ -303,7 +303,7 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-bold text-slate-900 dark:text-white">Notifikasi Push</div>
-                  <div className="text-slate-500 dark:text-slate-400 text-[11px]">Pemberitahuan posisi unit towing & derek</div>
+                  <div className="text-slate-500 dark:text-slate-400 text-[11px]">Preferensi tampilan demo (tanpa push sungguhan)</div>
                 </div>
                 <input
                   type="checkbox"
@@ -316,7 +316,7 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
                 <div>
                   <div className="font-bold text-slate-900 dark:text-white">Peringatan SMS Darurat</div>
-                  <div className="text-slate-500 dark:text-slate-400 text-[11px]">Kirim SMS bila koneksi hilang</div>
+                  <div className="text-slate-500 dark:text-slate-400 text-[11px]">Pengaturan demo (SMS tidak terkirim)</div>
                 </div>
                 <input
                   type="checkbox"

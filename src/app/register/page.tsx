@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Zap, User, Phone, Mail, Lock, ArrowRight, Bike, Car } from "lucide-react";
+import { Zap, User, Mail, Lock, ArrowRight, Bike, Car } from "lucide-react";
 import { useTrobosStore } from "@/store/useTrobosStore";
 
 export default function RegisterPage() {
@@ -11,7 +11,6 @@ export default function RegisterPage() {
   const login = useTrobosStore((s) => s.login);
   const [formData, setFormData] = useState({
     name: "",
-    phone: "",
     email: "",
     password: "",
     agreeTerms: false,
@@ -25,17 +24,17 @@ export default function RegisterPage() {
   const onboardingScreens = [
     {
       title: "Escape the Traffic",
-      subtitle: "Trobos kemacetan dengan rider motor terlatih yang membawa Anda ke tujuan.",
+      subtitle: "Konsep layanan rider untuk mengantar penumpang (simulasi).",
       icon: Bike,
     },
     {
       title: "Your Car Is Still Safe",
-      subtitle: "Driver profesional mengambil alih mobil Anda dan mengemudikannya dengan aman.",
+      subtitle: "Konsep driver yang membantu kendaraan Anda (simulasi).",
       icon: Car,
     },
     {
       title: "One Tap. Two Drivers. One Destination.",
-      subtitle: "Anda dan mobil Anda akhirnya bertemu kembali di tempat tujuan.",
+      subtitle: "Ilustrasi dua jalur perjalanan menuju lokasi tujuan.",
       icon: Zap,
     },
   ];
@@ -92,7 +91,7 @@ export default function RegisterPage() {
                 Buat Akun Baru
               </h1>
               <p className="text-xs text-slate-500">
-                Daftar untuk perlindungan evakuasi kemacetan Anda.
+                Daftar untuk mencoba simulasi layanan mobilitas TROBOS.
               </p>
             </div>
 
@@ -116,21 +115,6 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nomor Telepon
-                  </label>
-                  <div className="relative">
-                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-slate-900"
-                    />
-                  </div>
-                </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -176,7 +160,7 @@ export default function RegisterPage() {
                     className="accent-[#FF4D00]"
                   />
                   <label htmlFor="terms" className="text-[11px]">
-                    Saya menyetujui Syarat Layanan dan Kebijakan Asuransi Trobos.
+                    Saya memahami bahwa TROBOS adalah prototipe akademik; tidak ada bantuan, pembayaran, atau asuransi sungguhan.
                   </label>
                 </div>
 

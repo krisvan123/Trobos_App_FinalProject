@@ -97,10 +97,12 @@ export default function DriverDashboardPage() {
   };
 
   const handleStartTransit = () => {
+    if (!pinVerified || !Object.values(checklist).every(Boolean)) return;
     setDriverState("IN_TRANSIT");
   };
 
   const handleComplete = () => {
+    if (driverState !== "IN_TRANSIT") return;
     setDriverState("COMPLETED");
     setEarningsToday((e) => e + 110000);
     setTripsCompleted((t) => t + 1);
@@ -108,6 +110,7 @@ export default function DriverDashboardPage() {
 
   const handleReset = () => {
     setDriverState("IDLE");
+    setChecklist({ front: false, rear: false, sides: false, interior: false, keyHandover: false });
     setHasIncoming(true);
     setPinInput("");
     setPinVerified(false);
@@ -115,6 +118,9 @@ export default function DriverDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
+      <div className="sticky top-0 z-50 bg-amber-50 border-b border-amber-200 text-amber-950 px-4 py-2 text-center text-xs font-bold">
+        MODE SIMULASI DRIVER — Tidak terhubung ke armada, pelanggan, GPS atau pendapatan sungguhan.
+      </div>
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 h-16 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
