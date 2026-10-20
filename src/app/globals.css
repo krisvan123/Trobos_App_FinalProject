@@ -346,7 +346,6 @@ body {
 .trobos-live-map .leaflet-container { background:#DCE3E5; font-family:inherit; }
 .trobos-live-map .leaflet-control-attribution { font-size:9px; opacity:.77; }
 .trobos-live-map .leaflet-control-zoom { display:none; }
-.trobos-live-map .leaflet-pane { z-index:auto; }
 
 /* Make existing workflow cards fit the map-first shell on smaller devices. */
 .trobos-flow-layer > [class*="fixed"][class*="bottom-"] {

@@ -123,7 +123,7 @@ function createGoogleMarker(maps: any, map: any, point: Position, title: string,
 function googlePath(map: any, maps: any, coords: Position[], color: string) {
   return new maps.Polyline({ map, path: coords, strokeColor: color, strokeOpacity: 0.92, strokeWeight: 5 });
 }
-async const knownDemoPoints: Position[] = [
+const knownDemoPoints: Position[] = [
   MOCK_LOCATIONS.current, ...MOCK_LOCATIONS.destinations, ...MOCK_LOCATIONS.workshops,
 ];
 
@@ -160,7 +160,7 @@ async function routeFromOsrmDemo(start: Position, end: Position): Promise<Positi
   } finally { window.clearTimeout(timeout); }
 }
 
-function routeFromGoogle(start: Position, end: Position): Promise<Position[]> {
+async function routeFromGoogle(start: Position, end: Position): Promise<Position[]> {
   // Routes Library supersedes legacy DirectionsService, which cannot be enabled
   // for new Google Cloud projects. Google route requests require enabled billing.
   const maps = (window as MapGlobal).google!.maps;
