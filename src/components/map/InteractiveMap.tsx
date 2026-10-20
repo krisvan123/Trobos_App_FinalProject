@@ -128,8 +128,17 @@ function createGoogleMarker(maps: any, map: any, point: Position, title: string,
     icon: googleSvgIcon(maps, moving ? vehicleSvg(kind) : waypointSvg(kind), moving ? 54 : 48),
   });
 }
-function googlePath(map: any, maps: any, coords: Position[], color: string) {
-  return new maps.Polyline({ map, path: coords, strokeColor: color, strokeOpacity: 0.92, strokeWeight: 5 });
+function googlePath(map: any, maps: any, coords: Position[], color: string, dashed = false) {
+  // Passenger is solid blue. Towing/customer-car is dashed copper,
+  // so even temporarily shared roads remain visually distinguishable.
+  return new maps.Polyline({
+    map, path: coords, strokeColor: color,
+    strokeOpacity: dashed ? 0.20 : 0.92, strokeWeight: dashed ? 6 : 5,
+    icons: dashed ? [{
+      icon: { path: "M 0,-1 0,1", strokeOpacity: 1, strokeColor: color, strokeWeight: 3, scale: 4 },
+      offset: "0", repeat: "24px",
+    }] : undefined,
+  });
 }
 const knownDemoPoints: Position[] = [
   MOCK_LOCATIONS.current, ...MOCK_LOCATIONS.destinations, ...MOCK_LOCATIONS.workshops,
@@ -320,7 +329,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           };
           setRouteMode(passengerRoute.length > 5 && towingRoute.length > 5 ? "roads" : "illustration");
           objects.push(googlePath(map, maps, passengerRoute, PASSENGER));
-          objects.push(googlePath(map, maps, towingRoute, TOWING));
+          objects.push(googlePath(map, maps, towingRoute, TOWING, true));
           fitPointsGoogle(map, maps, [originPos, passengerPos, carPos], hostRef.current);
         } else {
           const L = w.L!;
@@ -394,7 +403,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             approach: prepareRoute(approachRoute),
           };
           const pLayer = L.polyline(passengerRoute.map(p => [p.lat, p.lng]), { color: PASSENGER, weight: 5, opacity: 0.85 }).addTo(map);
-          const cLayer = L.polyline(towingRoute.map(p => [p.lat, p.lng]), { color: TOWING, weight: 5, opacity: 0.85 }).addTo(map);
+          const cLayer = L.polyline(towingRoute.map(p => [p.lat, p.lng]), {
+             color: TOWING, weight: 6, opacity: 0.96, dashArray: "10 12", lineCap: "round",
+           }).addTo(map);
           layersRef.current = [pLayer, cLayer];
           fitPointsLeaflet(map, L, [originPos, passengerPos, carPos], hostRef.current, false);
           L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -446,6 +457,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     const fromCar = carProgress;
     const currentStatus = status;
     const update = (now: number) => {
+      const liveTrip = useTrobosStore.getState().currentTrip;
+      // A skip can complete a vehicle immediately; never let a stale frame
+      // jump it backwards or override a newly advanced trip phase.
+      if (!liveTrip || liveTrip.status !== currentStatus) return;
       const elapsed = now - start;
       if (currentStatus === "TANDEM_APPROACHING") {
         const approachPercent = Math.min(100, elapsed / 36000 * 100);
@@ -460,9 +475,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           }
         }
         if (approachPercent === 100) { setArrived(); return; }
-      } else if (currentStatus === "TRIP_STARTED" || currentStatus === "USER_ARRIVED") {
+      } else if (currentStatus === "TRIP_STARTED" || currentStatus === "USER_ARRIVED" || currentStatus === "VEHICLE_ARRIVED") {
         const up = currentStatus === "USER_ARRIVED" ? 100 : Math.min(100, fromUser + elapsed / 110000 * 100);
-        const cp = Math.min(100, fromCar + elapsed / 140000 * 100);
+        const cp = currentStatus === "VEHICLE_ARRIVED" ? 100 : Math.min(100, fromCar + elapsed / 140000 * 100);
         // Move both vehicles each animation frame; write readable HUD progress
         // at a lower rate to keep React renders and phone battery usage down.
         if (engineRef.current) {
@@ -480,8 +495,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           updateLiveProgress(Math.round(up), Math.round(cp), Math.ceil((100 - up) / 100 * 2), Math.ceil((100 - cp) / 100 * 3));
           last = now;
         }
-        if (up >= 100 && currentStatus === "TRIP_STARTED") { userArrivedAtDest(); return; }
-        if (cp >= 100 && currentStatus === "USER_ARRIVED") { carArrivedAtDest(); return; }
+        if (up >= 100 && (currentStatus === "TRIP_STARTED" || currentStatus === "VEHICLE_ARRIVED")) {
+          userArrivedAtDest(); return;
+        }
+        if (cp >= 100 && (currentStatus === "TRIP_STARTED" || currentStatus === "USER_ARRIVED")) {
+          carArrivedAtDest(); return;
+        }
       } else return;
       frame = requestAnimationFrame(update);
     };
@@ -577,8 +596,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         </div>
       )}
       <div className="absolute z-10 right-4 bottom-[min(22rem,45%)] lg:bottom-5 hidden sm:flex items-center gap-2 text-xs text-white/95">
-        <span className="rounded-full bg-[#367EAB] px-2.5 py-1.5 shadow-sm">● Penumpang</span>
-        <span className="rounded-full bg-[#C27651] px-2.5 py-1.5 shadow-sm">● Mobil</span>
+        <span className="tr-route-legend-passenger">━ Penumpang → {passengerDestination.name}</span>
+        <span className="tr-route-legend-car">┄ {carKind === "tow" ? "Derek ke bengkel" : "Mobil pelanggan"} → {carDestination.name}</span>
       </div>
       <div className="sr-only"><MapPin/><Route/>Tracking dan rute adalah simulasi. Tidak ada GPS driver sungguhan.</div>
     </div>

@@ -14,7 +14,7 @@ import { DualJourneyTracker } from "@/components/emergency/DualJourneyTracker";
 import { TripCompletedModal } from "@/components/emergency/TripCompletedModal";
 import { OnboardingTutorialModal } from "@/components/common/OnboardingTutorialModal";
 import { DriverChatModal } from "@/components/emergency/DriverChatModal";
-import { ArrowLeft, Bell, Bike, CarFront, ChevronRight, MapPin, Moon, Navigation, ShieldCheck, Sun, UserRound, Zap } from "lucide-react";
+import { ArrowRight, Bell, Bike, CarFront, ChevronRight, MapPin, Moon, Navigation, ShieldCheck, Sun, UserRound } from "lucide-react";
 
 const phaseLabel: Record<string,string> = {
   SEARCHING_TANDEM: "Mencari armada contoh",
@@ -40,6 +40,7 @@ export default function HomePage() {
   const theme = useTrobosStore(s => s.theme);
   const toggleTheme = useTrobosStore(s => s.toggleTheme);
   const reset = useTrobosStore(s => s.resetToIdle);
+  const setArrived = useTrobosStore(s => s.setArrived);
   const isTutorialOpen = useTrobosStore(s => s.isTutorialOpen);
   const setTutorialOpen = useTrobosStore(s => s.setTutorialOpen);
   const isChatOpen = useTrobosStore(s => s.isChatOpen);
@@ -107,6 +108,9 @@ export default function HomePage() {
             </div>
             <div className="trobos-hud-route"><MapPin size={17}/><span>{trip?.origin.name}</span></div>
             <div className="tr-approach-progress"><div className="tr-approach-progress-bar"/></div>
+            <button type="button" className="tr-trip-skip-approach" onClick={setArrived}>
+              Lewati animasi penjemputan <span>Skip <ArrowRight size={15}/></span>
+            </button>
             <p className="trobos-legal-note">Animasi penjemputan berjalan otomatis dan bukan pergerakan driver sungguhan.</p>
           </div>
         )}

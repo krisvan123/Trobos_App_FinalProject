@@ -3,11 +3,13 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useTrobosStore } from "@/store/useTrobosStore";
-import { Bike, CarFront, ChevronDown, Check, CircleHelp, MessageCircle, Route, Share2, Truck, Users } from "lucide-react";
+import { Bike, CarFront, ChevronDown, Check, CircleHelp, FastForward, MessageCircle, Route, Share2, Truck, Users } from "lucide-react";
 
 export function DualJourneyTracker() {
   const currentTrip = useTrobosStore(s => s.currentTrip);
   const setChatOpen = useTrobosStore(s => s.setChatOpen);
+  const skipPassenger = useTrobosStore(s => s.userArrivedAtDest);
+  const skipCar = useTrobosStore(s => s.carArrivedAtDest);
   const mapFocus = useTrobosStore(s => s.mapFocus);
   const setMapFocus = useTrobosStore(s => s.setMapFocus);
   const [notice, setNotice] = useState("");
@@ -15,7 +17,8 @@ export function DualJourneyTracker() {
   if (!currentTrip) return null;
   const p = Math.min(100, Math.max(0, currentTrip.userProgressPercent ?? 0));
   const c = Math.min(100, Math.max(0, currentTrip.carProgressPercent ?? 0));
-  const passengerDone = currentTrip.status === "USER_ARRIVED" || p === 100;
+  const passengerDone = currentTrip.status === "USER_ARRIVED" || currentTrip.status === "COMPLETED" || p === 100;
+  const carDone = currentTrip.status === "VEHICLE_ARRIVED" || currentTrip.status === "COMPLETED" || c === 100;
   const transport = currentTrip.passengerTransport;
   const isTandem = currentTrip.serviceType === "TANDEM";
 
@@ -49,10 +52,22 @@ export function DualJourneyTracker() {
             className={"trobos-journey-row trobos-focus-row " + (mapFocus === "tow" ? "is-following" : "")}>
             <div className="trobos-journey-symbol copper">{isTandem ? <CarFront size={22}/> : <Truck size={22}/>}</div>
             <div className="trobos-journey-info">
-              <div className="trobos-journey-title"><strong>{isTandem ? "Mobil & driver" : "Mobil & towing"}</strong><span>{mapFocus === "tow" ? "● Ikuti" : c === 100 ? "Tiba" : c + "%"}</span></div>
+              <div className="trobos-journey-title"><strong>{isTandem ? "Mobil & driver" : "Mobil & towing"}</strong><span>{mapFocus === "tow" ? "● Ikuti" : carDone ? "Tiba" : c + "%"}</span></div>
               <p>{currentTrip.carDestination.name}</p>
               <div className="trobos-progress-track"><i style={{width:c + "%",background:"#C27651"}}/></div>
             </div>
+          </button>
+        </div>
+        <div className="tr-trip-skip-grid" role="group" aria-label="Kontrol lewati animasi perjalanan">
+          <button type="button" onClick={skipPassenger} disabled={passengerDone}
+            aria-label="Lewati animasi perjalanan penumpang sampai tujuan">
+            {passengerDone ? <Check size={16}/> : <FastForward size={16}/>}
+            <span>{passengerDone ? "Penumpang tiba" : "Skip penumpang"}</span>
+          </button>
+          <button type="button" onClick={skipCar} disabled={carDone}
+            aria-label={isTandem ? "Lewati animasi mobil pelanggan sampai tujuan" : "Lewati animasi towing hingga bengkel"}>
+            {carDone ? <Check size={16}/> : <FastForward size={16}/>}
+            <span>{carDone ? (isTandem ? "Mobil tiba" : "Derek tiba") : (isTandem ? "Skip mobil" : "Skip derek")}</span>
           </button>
         </div>
         <div className="trobos-journey-meta">
@@ -72,7 +87,7 @@ export function DualJourneyTracker() {
               <button type="button" onClick={() => setNotice("Live tracking belum tersedia karena posisi kendaraan merupakan animasi demo.")}><Share2 size={17}/> Bagikan</button>
               <Link href="/app/help"><CircleHelp size={17}/> Bantuan</Link>
             </div>
-            <p className="trobos-legal-note">Progres bergerak otomatis dan tidak berasal dari GPS driver sungguhan. Tidak ada tahap yang perlu dipercepat secara manual.</p>
+            <p className="trobos-legal-note">Progres bergerak otomatis dan tidak berasal dari GPS driver sungguhan. Kamu bisa melewati animasi masing-masing kendaraan tanpa menghentikan kendaraan lainnya.</p>
           </div>
         )}
       </section>
