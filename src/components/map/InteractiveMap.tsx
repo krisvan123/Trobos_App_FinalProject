@@ -190,9 +190,14 @@ function mapPadding(host: HTMLElement | null) {
   const preview = isPreviewMap(host);
   const phone = window.innerWidth < 768;
   const tablet = window.innerWidth < 1024;
-  return preview
-    ? { top: 85, right: 22, bottom: 165, left: 22 }
-    : { top: 95, right: 48, bottom: phone ? 220 : 90, left: phone ? 48 : tablet ? 385 : 470 };
+  if (preview) return { top: 85, right: 22, bottom: 165, left: 22 };
+  // Map-first tracking has no permanently docked left booking panel.
+  // Reserve only enough space for the compact tracking card.
+  if (host?.closest(".tr-experience-map")) {
+    return { top: phone ? 170 : 160, right: phone ? 22 : 58,
+      bottom: phone ? 260 : 105, left: phone ? 30 : tablet ? 260 : 405 };
+  }
+  return { top: 95, right: 48, bottom: phone ? 220 : 90, left: phone ? 48 : tablet ? 385 : 470 };
 }
 function fitPointsGoogle(map: any, maps: any, points: Position[], host: HTMLElement | null) {
   const bounds = new maps.LatLngBounds();
