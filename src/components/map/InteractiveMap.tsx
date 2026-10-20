@@ -123,17 +123,57 @@ function createGoogleMarker(maps: any, map: any, point: Position, title: string,
 function googlePath(map: any, maps: any, coords: Position[], color: string) {
   return new maps.Polyline({ map, path: coords, strokeColor: color, strokeOpacity: 0.92, strokeWeight: 5 });
 }
+async const knownDemoPoints: Position[] = [
+  MOCK_LOCATIONS.current, ...MOCK_LOCATIONS.destinations, ...MOCK_LOCATIONS.workshops,
+];
+
+function isPublicDemoPoint(point: Position): boolean {
+  return knownDemoPoints.some(existing =>
+    Math.abs(existing.lat - point.lat) < 0.000001 && Math.abs(existing.lng - point.lng) < 0.000001
+  );
+}
+
+async function routeFromOsrmDemo(start: Position, end: Position): Promise<Position[]> {
+  // No GPS or custom coordinates are sent to a third-party routing provider.
+  // This free demo endpoint is used only for preset public Jakarta examples;
+  // it is not suitable for a commercial or emergency dispatch service.
+  if (!isPublicDemoPoint(start) || !isPublicDemoPoint(end)) throw new Error("Hanya lokasi demo");
+  const cacheKey = "trobos-road-demo-v1:" + [start.lat,start.lng,end.lat,end.lng].join(",");
+  try {
+    const cached = window.sessionStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached) as Position[];
+  } catch { /* session storage unavailable */ }
+  const url = "https://router.project-osrm.org/route/v1/driving/" +
+    start.lng + "," + start.lat + ";" + end.lng + "," + end.lat +
+    "?overview=full&geometries=geojson";
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 6000);
+  try {
+    const response = await fetch(url, { signal: controller.signal, cache: "force-cache" });
+    if (!response.ok) throw new Error("Demo route unavailable");
+    const payload = await response.json();
+    const coords = payload?.routes?.[0]?.geometry?.coordinates;
+    if (!Array.isArray(coords) || coords.length < 2 || coords.length > 10000) throw new Error("Demo geometry invalid");
+    const path: Position[] = coords.map(([lng, lat]: [number,number]) => ({lat,lng}));
+    try { window.sessionStorage.setItem(cacheKey, JSON.stringify(path)); } catch { /* optional cache */ }
+    return path;
+  } finally { window.clearTimeout(timeout); }
+}
+
 function routeFromGoogle(start: Position, end: Position): Promise<Position[]> {
+  // Routes Library supersedes legacy DirectionsService, which cannot be enabled
+  // for new Google Cloud projects. Google route requests require enabled billing.
   const maps = (window as MapGlobal).google!.maps;
-  return new Promise((resolve, reject) => {
-    new maps.DirectionsService().route({
-      origin: start, destination: end, travelMode: maps.TravelMode.DRIVING,
-    }, (response: any, status: string) => {
-      if (status === "OK" && response?.routes?.[0]?.overview_path?.length) {
-        resolve(response.routes[0].overview_path.map((point: any) => ({ lat: point.lat(), lng: point.lng() })));
-      } else reject(new Error("Rute jalan Google belum tersedia"));
-    });
+  const { Route } = await maps.importLibrary("routes");
+  const result = await Route.computeRoutes({
+    origin: start, destination: end, travelMode: "DRIVING", fields: ["path"],
   });
+  const raw = result?.routes?.[0]?.path;
+  if (!Array.isArray(raw) || raw.length < 2) throw new Error("Rute jalan belum tersedia");
+  return raw.map((point: any) => ({
+    lat: typeof point.lat === "function" ? point.lat() : point.lat,
+    lng: typeof point.lng === "function" ? point.lng() : point.lng,
+  }));
 }
 function fitPointsGoogle(map: any, maps: any, points: Position[]) {
   const bounds = new maps.LatLngBounds();
@@ -252,9 +292,19 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           markersRef.current.workshop = L.marker([carDestination.lat, carDestination.lng], { icon: icon("◆", "truck") }).addTo(map);
           markersRef.current.rider = L.marker([origin.lat, origin.lng], { icon: icon("🛵", "bike") });
           markersRef.current.towing = L.marker([origin.lat, origin.lng], { icon: icon("🚚", "truck") });
-          const passengerRoute = guidePath(originPos, passengerPos);
-          const towingRoute = guidePath(originPos, carPos);
+          let passengerRoute = guidePath(originPos, passengerPos);
+          let towingRoute = guidePath(originPos, carPos);
           const approachRoute = demoApproach(originPos);
+          // Respect the OSRM demo server's <=1 request/second guidance.
+          // Only public fixture coordinates are allowed; never forward browser GPS.
+          if (isPublicDemoPoint(originPos)) {
+            try {
+              passengerRoute = await routeFromOsrmDemo(originPos, passengerPos);
+              await new Promise(resolve => window.setTimeout(resolve, 1100));
+              towingRoute = await routeFromOsrmDemo(originPos, carPos);
+            } catch { /* Show an explicitly labelled illustrative route instead. */ }
+          }
+          if (cancelled) return;
           routesRef.current = { passenger: passengerRoute, towing: towingRoute, approach: approachRoute };
           const pLayer = L.polyline(passengerRoute.map(p => [p.lat, p.lng]), { color: PASSENGER, weight: 5, opacity: 0.85 }).addTo(map);
           const cLayer = L.polyline(towingRoute.map(p => [p.lat, p.lng]), { color: TOWING, weight: 5, opacity: 0.85 }).addTo(map);
@@ -265,7 +315,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             paddingBottomRight: [40, window.innerWidth < 768 ? 220 : 30],
           });
           L.control.zoom({ position: "bottomright" }).addTo(map);
-          setRouteMode("illustration");
+          setRouteMode(passengerRoute.length > 5 && towingRoute.length > 5 ? "roads" : "illustration");
           // Prevent partial tile layout after the flex container finishes animating.
           window.setTimeout(() => { if (!cancelled) map.invalidateSize(); }, 150);
         }
@@ -395,7 +445,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       <div className="absolute z-10 left-4 bottom-[min(22rem,45%)] lg:bottom-5 pointer-events-none max-w-[260px]">
         <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/90 dark:bg-[#192633]/95 text-[#334251] dark:text-[#E5EDF2] text-[11px] font-semibold shadow-lg backdrop-blur-xl border border-white/65 dark:border-white/10">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4C9B81]"/>
-          {engine === "google" ? "Google Maps" : "OpenStreetMap"} · {routeMode === "roads" ? "Rute jalan" : "Rute ilustrasi"}
+          {engine === "google" ? "Google Maps" : "OpenStreetMap"} · {routeMode === "roads" ? "Rute jalan demo" : "Rute ilustrasi"}
         </span>
         {message && <p role="status" className="mt-2 rounded-xl px-3 py-2 bg-white/95 dark:bg-[#192633]/95 text-xs text-slate-700 dark:text-slate-200">{message}</p>}
       </div>
