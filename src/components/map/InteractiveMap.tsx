@@ -443,7 +443,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     const update = (now: number) => {
       const elapsed = now - start;
       if (currentStatus === "TANDEM_APPROACHING") {
-        const approachPercent = Math.min(100, elapsed / 14500 * 100);
+        const approachPercent = Math.min(100, elapsed / 36000 * 100);
         const marker = markersRef.current.rider;
         if (marker) {
           const pos = sampleRoute(routesRef.current.approach, approachPercent);
@@ -456,8 +456,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         }
         if (approachPercent === 100) { setArrived(); return; }
       } else if (currentStatus === "TRIP_STARTED" || currentStatus === "USER_ARRIVED") {
-        const up = currentStatus === "USER_ARRIVED" ? 100 : Math.min(100, fromUser + elapsed / 38000 * 100);
-        const cp = Math.min(100, fromCar + elapsed / 55000 * 100);
+        const up = currentStatus === "USER_ARRIVED" ? 100 : Math.min(100, fromUser + elapsed / 110000 * 100);
+        const cp = Math.min(100, fromCar + elapsed / 140000 * 100);
         // Move both vehicles each animation frame; write readable HUD progress
         // at a lower rate to keep React renders and phone battery usage down.
         if (engineRef.current) {

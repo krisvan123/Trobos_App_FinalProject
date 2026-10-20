@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { calculateDemoFare } from "@/lib/pricing";
+import { nearestDemoWorkshop } from "@/lib/workshopRecommendation";
 import { persist } from "zustand/middleware";
 import {
   TripStatus,
@@ -22,6 +23,7 @@ import {
   MOCK_USER,
   MOCK_VEHICLES,
   MOCK_LOCATIONS,
+  WORKSHOP_DESTINATIONS,
   MOCK_TANDEM,
   MOCK_TOWING,
   DEFAULT_FARE,
@@ -233,7 +235,12 @@ export const useTrobosStore = create<TrobosStore>()(
       },
 
       setPickupLocation: (location) => set({ pickupLocation: location }),
-      setSelectedDestination: (dest) => set({ selectedDestination: dest }),
+      setSelectedDestination: (dest) => set({
+        selectedDestination: dest,
+        // Changing a passenger destination also changes the recommended
+        // destination for the rescue vehicle (not the origin).
+        selectedWorkshop: nearestDemoWorkshop(dest, WORKSHOP_DESTINATIONS) || WORKSHOP_DESTINATIONS[0],
+      }),
       setSelectedWorkshop: (shop) => set({ selectedWorkshop: shop }),
       setCarDestinationType: (type) => set({ carDestinationType: type }),
       setSelectedProblemId: (id) => set({ selectedProblemId: id }),
@@ -287,7 +294,9 @@ export const useTrobosStore = create<TrobosStore>()(
         const activeVeh =
           state.vehicles.find((v) => v.id === state.activeVehicleId) || state.vehicles[0];
         const dest = destination || state.selectedDestination;
-        const workshop = state.selectedWorkshop;
+        const workshop = destination
+          ? nearestDemoWorkshop(dest, WORKSHOP_DESTINATIONS) || state.selectedWorkshop
+          : state.selectedWorkshop;
         const carDest = state.serviceType === "MECHANIC" && state.carDestinationType === "WORKSHOP" ? workshop : dest;
 
         const problem =
@@ -356,6 +365,7 @@ export const useTrobosStore = create<TrobosStore>()(
           currentTrip: {
             ...trip,
             status: "SEARCHING_TANDEM",
+            origin: state.pickupLocation,
             serviceType: state.serviceType,
             paymentMethod: state.paymentMethod,
             vehicle,
@@ -651,30 +661,30 @@ export const useTrobosStore = create<TrobosStore>()(
 
       runAutoSimulation: () => {
         get().stopAutoSimulation();
-        get().startBooking(MOCK_LOCATIONS.destinations[0]);
+        get().startBooking();
         get().confirmBooking();
         set({ isDemoRunning: true });
         const schedule = (fn: () => void, delay: number) => setTimeout(() => {
           if (get().isDemoRunning) fn();
         }, delay);
         const timers = [
-          schedule(() => get().assignTandem(), 1200),
-          schedule(() => get().setApproaching(), 3000),
-          schedule(() => get().setArrived(), 17700),
-          schedule(() => get().verifyOtp(get().currentTrip?.otpCode || ""), 19100),
+          schedule(() => get().assignTandem(), 10000),
+          schedule(() => get().setApproaching(), 21000),
+          schedule(() => get().setArrived(), 59000),
+          schedule(() => get().verifyOtp(get().currentTrip?.otpCode || ""), 72000),
           schedule(() => {
             const handover = get().currentTrip?.handover;
             if (handover) for (const key of ["front", "rear", "left", "right", "interior", "problemConfirmed"] as const) {
               if (!handover[key]) get().toggleChecklistItem(key);
             }
             get().confirmVehicleHandover();
-          }, 21400),
-          schedule(() => get().userArrivedAtDest(), 60000),
-          schedule(() => get().carArrivedAtDest(), 78000),
+          }, 85000),
+          schedule(() => get().userArrivedAtDest(), 198000),
+          schedule(() => get().carArrivedAtDest(), 220000),
           schedule(() => {
             get().completeTrip(5, ["Demo selesai"]);
             set({ isDemoRunning: false, demoTimers: [] });
-          }, 79000),
+          }, 230000),
         ];
         set({ demoTimers: timers });
       },

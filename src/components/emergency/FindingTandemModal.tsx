@@ -8,7 +8,7 @@ export function FindingTandemModal() {
   const resetToIdle = useTrobosStore(s => s.resetToIdle);
   const assignTandem = useTrobosStore(s => s.assignTandem);
   useEffect(() => {
-    const timer = window.setTimeout(assignTandem, 3500);
+    const timer = window.setTimeout(assignTandem, 10000);
     return () => window.clearTimeout(timer);
   }, [assignTandem]);
 
