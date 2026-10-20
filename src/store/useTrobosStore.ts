@@ -120,14 +120,14 @@ const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
     id: "msg-1",
     sender: "system",
     senderName: "Sistem Trobos",
-    text: "Unit Tandem (Rider Rizky & Driver Budi) telah ditugaskan. Saluran pesan darurat aktif.",
+    text: "Pesan dan balasan di sini merupakan simulasi otomatis, bukan komunikasi dengan petugas.",
     timestamp: "Baru saja",
   },
   {
     id: "msg-2",
     sender: "rider",
     senderName: "Rizky Pratama (Rider)",
-    text: "Halo kak Andi, saya bersama Driver Budi sedang meluncur ke titik Anda di Sudirman. Posisi kami sekitar 3 menit lagi.",
+    text: "Halo! Ini adalah contoh percakapan demo. Tidak ada driver sungguhan yang ditugaskan.",
     timestamp: "1 mnt lalu",
   },
 ];
@@ -240,6 +240,8 @@ export const useTrobosStore = create<TrobosStore>()(
         })),
 
       sendChatMessage: (text) => {
+        const tripId = get().currentTrip?.id;
+        if (!tripId || !text.trim()) return;
         const userMsg: ChatMessage = {
           id: `msg-${Date.now()}`,
           sender: "user",
@@ -250,18 +252,19 @@ export const useTrobosStore = create<TrobosStore>()(
 
         set((state) => ({ chatMessages: [...state.chatMessages, userMsg] }));
 
-        // Automatic realistic response after 1.2 seconds for prototype demonstration
+        // Do not deliver stale simulated replies after a logout or trip reset.
         setTimeout(() => {
+          if (get().currentTrip?.id !== tripId) return;
           const replies = [
-            "Baik kak, kami catat. Kami langsung merapat ke titik yang kakak sebutkan.",
-            "Siap kak! Driver Budi sudah siap pegang kemudi mobil kakak.",
-            "Oke kak Andi, jangan khawatir, estimasi tiba tepat waktu.",
+            "Balasan otomatis demo: informasi Anda tercatat hanya di simulasi browser ini.",
+            "Balasan otomatis demo: pergerakan kendaraan belum berasal dari GPS sungguhan.",
+            "Balasan otomatis demo: untuk bantuan nyata, gunakan layanan resmi yang tersedia.",
           ];
           const randomReply = replies[Math.floor(Math.random() * replies.length)];
           const replyMsg: ChatMessage = {
             id: `msg-${Date.now() + 1}`,
             sender: "rider",
-            senderName: "Rizky Pratama (Rider)",
+            senderName: "Asisten Demo (Otomatis)",
             text: randomReply,
             timestamp: "Baru saja",
           };
@@ -368,7 +371,7 @@ export const useTrobosStore = create<TrobosStore>()(
 
       assignTandem: () => {
         set((state) => {
-          if (!state.currentTrip) return {};
+          if (state.currentTrip?.status !== "SEARCHING_TANDEM") return {};
           return {
             currentTrip: {
               ...state.currentTrip,
@@ -381,7 +384,7 @@ export const useTrobosStore = create<TrobosStore>()(
 
       setApproaching: () => {
         set((state) => {
-          if (!state.currentTrip) return {};
+          if (state.currentTrip?.status !== "TANDEM_ASSIGNED") return {};
           return {
             currentTrip: {
               ...state.currentTrip,
@@ -394,7 +397,7 @@ export const useTrobosStore = create<TrobosStore>()(
 
       setArrived: () => {
         set((state) => {
-          if (!state.currentTrip) return {};
+          if (state.currentTrip?.status !== "TANDEM_APPROACHING") return {};
           return {
             currentTrip: {
               ...state.currentTrip,
@@ -406,7 +409,7 @@ export const useTrobosStore = create<TrobosStore>()(
 
       verifyOtp: (code: string) => {
         const trip = get().currentTrip;
-        if (!trip) return false;
+        if (!trip || (trip.status !== "TANDEM_ARRIVED" && trip.status !== "VERIFICATION")) return false;
         if (code === trip.otpCode) {
           set({
             currentTrip: {
@@ -452,7 +455,7 @@ export const useTrobosStore = create<TrobosStore>()(
 
       confirmVehicleHandover: () => {
         set((state) => {
-          if (!state.currentTrip) return {};
+          if (state.currentTrip?.status !== "VEHICLE_HANDOVER") return {};
           const { handover } = state.currentTrip;
           if (!handover.front || !handover.rear || !handover.left || !handover.right || !handover.interior || !handover.problemConfirmed) return {};
           return {
@@ -485,7 +488,7 @@ export const useTrobosStore = create<TrobosStore>()(
 
       userArrivedAtDest: () => {
         set((state) => {
-          if (!state.currentTrip) return {};
+          if (state.currentTrip?.status !== "TRIP_STARTED") return {};
           return {
             currentTrip: {
               ...state.currentTrip,
@@ -499,7 +502,7 @@ export const useTrobosStore = create<TrobosStore>()(
 
       carArrivedAtDest: () => {
         set((state) => {
-          if (!state.currentTrip) return {};
+          if (state.currentTrip?.status !== "USER_ARRIVED") return {};
           return {
             currentTrip: {
               ...state.currentTrip,
@@ -514,7 +517,7 @@ export const useTrobosStore = create<TrobosStore>()(
 
       completeTrip: (rating, tags) => {
         const state = get();
-        if (!state.currentTrip) return;
+        if (state.currentTrip?.status !== "COMPLETED") return;
 
         const completedItem: TripHistoryItem = {
           id: state.currentTrip.id,
@@ -556,6 +559,7 @@ export const useTrobosStore = create<TrobosStore>()(
       },
 
       jumpToState: (targetStatus) => {
+        get().stopAutoSimulation();
         const state = get();
         const activeVeh =
           state.vehicles.find((v) => v.id === state.activeVehicleId) || state.vehicles[0];
