@@ -166,8 +166,9 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title="Permintaan Bantuan Mobilitas"
-      subtitle="Pilih layanan Tandem kemacetan atau bantuan mekanik & derek"
+      mode="map"
+      title="Atur perjalanan TROBOS"
+      subtitle="Pilih layanan, tujuan dan kendaraan untuk simulasi."
       maxHeight="max-h-[92vh]"
     >
       <div className="space-y-4 pb-8 text-slate-900 dark:text-white">

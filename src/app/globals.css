@@ -523,3 +523,28 @@ body {
 .trobos-studio-phase.is-active { color:var(--tr-ink); background:rgba(194,118,81,.13); }
 @media (min-width:768px) and (max-width:1023px) { .trobos-studio { bottom:100px; } }
 @media (max-width:767px) { .trobos-studio { display:none; } }
+
+/* Booking stays a true mobile sheet; on wide screens it overlays the left
+   planning panel while keeping the large map visible behind the dialog. */
+.trobos-booking-backdrop { background:rgba(14,28,39,.30)!important; backdrop-filter:blur(2px)!important; }
+.trobos-booking-sheet {
+  background:var(--tr-surface)!important;
+  color:var(--tr-ink)!important;
+  box-shadow:var(--tr-shadow)!important;
+  border-color:var(--tr-line)!important;
+}
+.trobos-booking-sheet>div:nth-child(2) { border-color:var(--tr-line)!important; }
+.trobos-booking-sheet h3 { font-size:20px; font-weight:850; letter-spacing:-.045em; }
+.trobos-booking-sheet select, .trobos-booking-sheet input, .trobos-booking-sheet textarea { font-size:14px; }
+.trobos-booking-sheet button { min-height:38px; }
+@media (min-width:768px) {
+  .trobos-booking-overlay { align-items:flex-start!important; justify-content:flex-start!important; padding:51px 0 20px 18px!important; }
+  .trobos-booking-sheet { max-width:340px!important; max-height:calc(100dvh - 74px)!important; border-radius:24px!important; }
+}
+@media (min-width:1024px) {
+  .trobos-booking-overlay { padding-left:113px!important; }
+  .trobos-booking-sheet { max-width:390px!important; }
+}
+@media (max-width:767px) {
+  .trobos-booking-sheet { max-height:calc(100dvh - 35px)!important; border-radius:26px 26px 0 0!important; }
+}

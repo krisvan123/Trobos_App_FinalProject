@@ -14,6 +14,7 @@ interface BottomSheetProps {
   showCloseButton?: boolean;
   maxHeight?: string;
   className?: string;
+  mode?: "standard" | "map";
 }
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({
@@ -25,6 +26,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   showCloseButton = true,
   maxHeight = "max-h-[90vh]",
   className,
+  mode = "standard",
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -55,7 +57,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className={cn(
+          "fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4",
+          mode === "map" && "trobos-booking-overlay"
+        )}>
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -63,7 +68,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="absolute inset-0 bg-slate-900/60 dark:bg-black/75 backdrop-blur-sm"
+            className={cn("absolute inset-0 bg-slate-900/60 dark:bg-black/75 backdrop-blur-sm", mode === "map" && "trobos-booking-backdrop")}
           />
 
           {/* Sheet Container */}
@@ -80,7 +85,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             className={cn(
               "relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-t-[32px] sm:rounded-3xl shadow-modal overflow-hidden flex flex-col z-10 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white",
               maxHeight,
-              className
+              className,
+              mode === "map" && "trobos-booking-sheet"
             )}
           >
             {/* Drag Handle on Mobile */}
