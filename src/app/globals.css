@@ -1405,3 +1405,17 @@ body {
   .tr-experience-tracking .trobos-journey-meta { margin-top:9px; padding-top:9px; }
   .tr-experience-tracking .trobos-journey-title strong { font-size:11px; }
 }
+
+/* Ensure the route connector spans both selectable stops at every breakpoint. */
+.tr-new-route-track { grid-column:1; grid-row:1 / span 2; }
+.tr-new-route-field { min-height:74px; }
+.tr-new-route-field:nth-child(3) { grid-row:2; }
+.tr-new-route-field:focus-within { outline:2px solid rgba(194,118,81,.22); outline-offset:-4px; border-radius:8px; }
+.tr-new-booking-cta:focus-visible,
+.tr-review-confirm:focus-visible,
+.tr-flow-primary:focus-visible,
+.tr-new-service:focus-visible,
+.tr-new-counter>button:focus-visible,
+.tr-new-icon-button:focus-visible {
+  outline:3px solid rgba(194,118,81,.55); outline-offset:3px;
+}

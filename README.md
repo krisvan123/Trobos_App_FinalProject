@@ -127,3 +127,26 @@ illustrate routes if real road routing is unavailable.
 Search and travel animations have been slowed down for demonstration.
 Sign-in and registration are optional; the Supabase demo trip archive is
 used only for a signed-in session when Supabase is configured.
+
+## Frontend redesign — booking to tracking
+
+The October 2026 frontend refresh replaces the duplicated orange prototype
+forms with a single cohesive booking-first journey experience:
+
+- **Before booking:** a responsive, scrollable planner and branded two-route
+  concept visual (not a live map). Configure service, optional device location
+  or Jakarta demo pickup, passenger destination, passenger count and demo
+  vehicle. Rescue shows the closest example workshop relative to the
+  passenger destination.
+- **Review:** an accessible, branded order summary with explicit disclaimers
+  and a confirm-to-track action. No fake payment checkout.
+- **After booking:** a full-screen real basemap (Google only if API key and
+  Routes API are correctly configured; otherwise OpenStreetMap) with
+  separately animated vehicle silhouettes and compact tracking overlays.
+- **Journey stages:** dispatch, PIN, inspection and completion all share
+  the same copper/midnight visual system, with production developer controls
+  hidden and expandable secondary tracking actions on mobile.
+
+The public location presets, map routes, prices, PIN and drivers are
+demonstration data. Passing automated tests and production builds does not
+replace testing the deployed app directly on real phone/tablet browsers.
