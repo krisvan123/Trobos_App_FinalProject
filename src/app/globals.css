@@ -114,6 +114,6 @@ body {
 }
 /* Give compact mobile metadata more legible minimum sizes. */
 @media (max-width: 640px) {
-  .text-\\[10px\\] { font-size: 0.72rem; line-height: 1.35; }
-  .text-\\[11px\\] { font-size: 0.78rem; line-height: 1.4; }
+  .text-\[10px\] { font-size: 0.72rem; line-height: 1.35; }
+  .text-\[11px\] { font-size: 0.78rem; line-height: 1.4; }
 }
