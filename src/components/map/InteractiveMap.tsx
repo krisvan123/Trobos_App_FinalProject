@@ -182,11 +182,29 @@ async function routeFromGoogle(start: Position, end: Position): Promise<Position
     lng: typeof point.lng === "function" ? point.lng() : point.lng,
   }));
 }
-function fitPointsGoogle(map: any, maps: any, points: Position[]) {
+function isPreviewMap(host: HTMLElement | null): boolean {
+  return Boolean(host?.closest(".tr-hero-map"));
+}
+function mapPadding(host: HTMLElement | null) {
+  const preview = isPreviewMap(host);
+  const phone = window.innerWidth < 768;
+  const tablet = window.innerWidth < 1024;
+  return preview
+    ? { top: 85, right: 22, bottom: 165, left: 22 }
+    : { top: 95, right: 48, bottom: phone ? 220 : 90, left: phone ? 48 : tablet ? 385 : 470 };
+}
+function fitPointsGoogle(map: any, maps: any, points: Position[], host: HTMLElement | null) {
   const bounds = new maps.LatLngBounds();
   points.forEach(point => bounds.extend(point));
-  const left = window.innerWidth >= 1024 ? 470 : window.innerWidth >= 768 ? 385 : 48;
-  map.fitBounds(bounds, { top: 95, right: 48, bottom: window.innerWidth < 768 ? 220 : 90, left });
+  map.fitBounds(bounds, mapPadding(host));
+}
+function fitPointsLeaflet(map: any, L: any, points: Position[], host: HTMLElement | null, animate: boolean) {
+  const padding = mapPadding(host);
+  map.fitBounds(L.latLngBounds(points.map(point => [point.lat, point.lng])).pad(.12), {
+    animate,
+    paddingTopLeft: [padding.left, padding.top],
+    paddingBottomRight: [padding.right, padding.bottom],
+  });
 }
 
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
@@ -271,11 +289,15 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             fullscreenControl: false, zoomControl: false, gestureHandling: "greedy",
           });
           mapRef.current = map;
+          // Manual dragging should never fight against automatic follow.
+          map.addListener("dragstart", () => setFollowTarget("off"));
           markersRef.current.pickup = createGoogleMarker(maps, map, originPos, "Titik bantuan", "pickup");
           markersRef.current.destination = createGoogleMarker(maps, map, passengerPos, "Tujuan penumpang", "passenger");
           markersRef.current.workshop = createGoogleMarker(maps, map, carPos, "Tujuan mobil", "workshop");
           markersRef.current.rider = createGoogleMarker(maps, map, originPos, "Armada penumpang simulasi", passengerKind);
           markersRef.current.towing = createGoogleMarker(maps, map, originPos, "Towing simulasi", "tow");
+          markersRef.current.rider.addListener("click", () => setFollowTarget("passenger"));
+          markersRef.current.towing.addListener("click", () => setFollowTarget("tow"));
           const resolveRoad = (end: Position) => routeFromGoogle(originPos, end).catch(() => guidePath(originPos, end));
           const [passengerRoute, towingRoute, approachRoute] = await Promise.all([
             resolveRoad(passengerPos),
@@ -291,11 +313,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           setRouteMode(passengerRoute.length > 5 && towingRoute.length > 5 ? "roads" : "illustration");
           objects.push(googlePath(map, maps, passengerRoute, PASSENGER));
           objects.push(googlePath(map, maps, towingRoute, TOWING));
-          fitPointsGoogle(map, maps, [originPos, passengerPos, carPos]);
+          fitPointsGoogle(map, maps, [originPos, passengerPos, carPos], hostRef.current);
         } else {
           const L = w.L!;
           map = L.map(hostRef.current, { zoomControl: false, attributionControl: true, preferCanvas: true });
           mapRef.current = map;
+          map.on("dragstart", () => setFollowTarget("off"));
           // Keyless default: real OSM street tiles. Dark appearance is a CSS
           // filter on the raster tiles ONLY, leaving vehicle markers colorful.
           // A separately configured CARTO key enables native CARTO dark/light.
@@ -342,6 +365,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           markersRef.current.workshop = L.marker([carDestination.lat, carDestination.lng], { icon: icon("workshop"), zIndexOffset: 100 }).addTo(map);
           markersRef.current.rider = L.marker([origin.lat, origin.lng], { icon: icon(passengerKind), zIndexOffset: 120 });
           markersRef.current.towing = L.marker([origin.lat, origin.lng], { icon: icon("tow"), zIndexOffset: 125 });
+          markersRef.current.rider.on("click", () => setFollowTarget("passenger"));
+          markersRef.current.towing.on("click", () => setFollowTarget("tow"));
           let passengerRoute = guidePath(originPos, passengerPos);
           let towingRoute = guidePath(originPos, carPos);
           const approachRoute = demoApproach(originPos);
@@ -363,11 +388,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           const pLayer = L.polyline(passengerRoute.map(p => [p.lat, p.lng]), { color: PASSENGER, weight: 5, opacity: 0.85 }).addTo(map);
           const cLayer = L.polyline(towingRoute.map(p => [p.lat, p.lng]), { color: TOWING, weight: 5, opacity: 0.85 }).addTo(map);
           layersRef.current = [pLayer, cLayer];
-          map.fitBounds(L.latLngBounds([[origin.lat,origin.lng],[passengerDestination.lat,passengerDestination.lng],[carDestination.lat,carDestination.lng]]).pad(.12), {
-            animate: false,
-            paddingTopLeft: [window.innerWidth >= 1024 ? 420 : window.innerWidth >= 768 ? 350 : 28, 100],
-            paddingBottomRight: [40, window.innerWidth < 768 ? 220 : 30],
-          });
+          fitPointsLeaflet(map, L, [originPos, passengerPos, carPos], hostRef.current, false);
           L.control.zoom({ position: "bottomright" }).addTo(map);
           setRouteMode(passengerRoute.length > 5 && towingRoute.length > 5 ? "roads" : "illustration");
           // Prevent partial tile layout after the flex container finishes animating.
@@ -462,21 +483,34 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine, status, setArrived, updateLiveProgress, userArrivedAtDest, carArrivedAtDest, passengerKind]);
 
+  // Focus immediately on the selected vehicle; subsequent frames keep it in view.
+  useEffect(() => {
+    if (!engine || !mapRef.current || followTarget === "off" || (!approaching && !tripRunning)) return;
+    const route = approaching
+      ? routesRef.current.approach
+      : followTarget === "tow" ? routesRef.current.towing : routesRef.current.passenger;
+    const progress = approaching ? 0 : followTarget === "tow" ? carProgress : userProgress;
+    const pos = sampleRoute(route, progress);
+    const map = mapRef.current;
+    if (engine === "google") {
+      map.setZoom(Math.max(14, map.getZoom() || 14));
+      map.panTo(pos);
+    } else {
+      map.flyTo([pos.lat,pos.lng], Math.max(14,map.getZoom()), {animate:true,duration:.7});
+    }
+    // Do not refocus on every store-progress tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engine, followTarget, approaching, tripRunning]);
+
   useEffect(() => {
     if (!engine || !mapRef.current) return;
     const map = mapRef.current;
     if (engine === "google") {
       fitPointsGoogle(map, (window as MapGlobal).google!.maps,
-        [origin, passengerDestination, carDestination]);
+        [origin, passengerDestination, carDestination], hostRef.current);
     } else {
       const L = (window as MapGlobal).L!;
-      map.fitBounds(L.latLngBounds([
-        [origin.lat,origin.lng], [passengerDestination.lat,passengerDestination.lng],
-        [carDestination.lat,carDestination.lng],
-      ]).pad(.12), {
-        paddingTopLeft: [window.innerWidth >= 1024 ? 420 : window.innerWidth >= 768 ? 350 : 28, 95],
-        paddingBottomRight: [40, window.innerWidth < 768 ? 220 : 30],
-      });
+      fitPointsLeaflet(map, L, [origin, passengerDestination, carDestination], hostRef.current, true);
     }
   }, [recenterId, engine, origin, passengerDestination, carDestination]);
 
