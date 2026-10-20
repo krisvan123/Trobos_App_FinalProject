@@ -5,7 +5,8 @@ import { Crosshair, Layers3, MapPin, Navigation2, Route } from "lucide-react";
 import { useTrobosStore } from "@/store/useTrobosStore";
 import type { LocationPoint, TripStatus } from "@/types/trobos";
 import { MOCK_LOCATIONS } from "@/lib/mockData";
-import { vehicleSvg, waypointSvg, routeBearing, type MovingVehicle, type Waypoint } from "@/lib/mapVehicleIcons";
+import { vehicleSvg, waypointSvg, type MovingVehicle, type Waypoint } from "@/lib/mapVehicleIcons";
+import { prepareRoute, sampleRoute, sampleHeading, type PreparedRoute } from "@/lib/routeMotion";
 
 interface InteractiveMapProps {
   status?: TripStatus;
@@ -80,25 +81,6 @@ function loadMapEngine(useGoogle: boolean) {
     () => Boolean(w.L?.map)
   );
 }
-function interpolate(points: Position[], percent: number): Position {
-  if (!points.length) return { lat: -6.2155, lng: 106.8217 };
-  if (points.length === 1) return points[0];
-  // Length-weighted interpolation gives visually even travel speed along bends.
-  const segmentLengths = points.slice(1).map((p, i) =>
-    Math.hypot(p.lat - points[i].lat, (p.lng - points[i].lng) * Math.cos(p.lat * Math.PI / 180))
-  );
-  const length = segmentLengths.reduce((sum, value) => sum + value, 0);
-  let remaining = Math.max(0, Math.min(100, percent)) / 100 * length;
-  for (let index = 0; index < segmentLengths.length; index++) {
-    if (remaining <= segmentLengths[index] || index === segmentLengths.length - 1) {
-      const t = segmentLengths[index] ? Math.min(1, remaining / segmentLengths[index]) : 0;
-      return { lat: points[index].lat + (points[index + 1].lat - points[index].lat) * t,
-        lng: points[index].lng + (points[index + 1].lng - points[index].lng) * t };
-    }
-    remaining -= segmentLengths[index];
-  }
-  return points[points.length - 1];
-}
 function setVehicleHeading(marker: any, kind: MovingVehicle, bearing: number, system: MapSystem) {
   if (!marker) return;
   // SVG vehicles face north at zero degrees. Rotate their inner graphics only
@@ -114,14 +96,12 @@ function setVehicleHeading(marker: any, kind: MovingVehicle, bearing: number, sy
     if (rotator) rotator.setAttribute("transform", "rotate(" + Math.round(bearing) + " 32 32)");
   }
 }
-function moveVehicle(marker: any, route: Position[], progress: number, kind: MovingVehicle, system: MapSystem) {
-  if (!marker || !route.length) return;
-  const position = interpolate(route, progress);
-  const toward = interpolate(route, Math.min(100, progress + 0.55));
-  const behind = interpolate(route, Math.max(0, progress - 0.55));
+function moveVehicle(marker: any, route: PreparedRoute, progress: number, kind: MovingVehicle, system: MapSystem) {
+  if (!marker || !route.points.length) return;
+  const position = sampleRoute(route, progress);
   if (system === "google") marker.setPosition(position);
   else marker.setLatLng([position.lat, position.lng]);
-  setVehicleHeading(marker, kind, routeBearing(behind, toward), system);
+  setVehicleHeading(marker, kind, sampleHeading(route, progress), system);
 }
 function guidePath(a: Position, b: Position): Position[] {
   // Offline illustration only: Google Directions replaces this with road geometry when configured.
@@ -226,15 +206,17 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const hostRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<{ pickup?: any; destination?: any; workshop?: any; rider?: any; towing?: any }>({});
-  const routesRef = useRef<{ passenger: Position[]; towing: Position[]; approach: Position[] }>({ passenger: [], towing: [], approach: [] });
+  const routesRef = useRef<{ passenger: PreparedRoute; towing: PreparedRoute; approach: PreparedRoute }>({
+    passenger: prepareRoute([]), towing: prepareRoute([]), approach: prepareRoute([]),
+  });
   const layersRef = useRef<any[]>([]);
   const tileRef = useRef<any>(null);
   const engineRef = useRef<MapSystem | null>(null);
   const [engine, setEngine] = useState<MapSystem | null>(null);
   const [message, setMessage] = useState("");
-  const [follow, setFollow] = useState(false);
-  const followRef = useRef(false);
-  useEffect(() => { followRef.current = follow; }, [follow]);
+  const [followTarget, setFollowTarget] = useState<"off"|"passenger"|"tow">("off");
+  const followRef = useRef(followTarget);
+  useEffect(() => { followRef.current = followTarget; }, [followTarget]);
   const [routeMode, setRouteMode] = useState<"roads" | "illustration">("illustration");
   const [recenterId, setRecenterId] = useState(0);
   const dark = theme === "dark";
@@ -300,7 +282,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             routeFromGoogle(demoApproach(originPos)[0], originPos).catch(() => demoApproach(originPos)),
           ]);
           if (cancelled) return;
-          routesRef.current = { passenger: passengerRoute, towing: towingRoute, approach: approachRoute };
+          routesRef.current = {
+            passenger: prepareRoute(passengerRoute),
+            towing: prepareRoute(towingRoute),
+            approach: prepareRoute(approachRoute),
+          };
           setRouteMode(passengerRoute.length > 5 && towingRoute.length > 5 ? "roads" : "illustration");
           objects.push(googlePath(map, maps, passengerRoute, PASSENGER));
           objects.push(googlePath(map, maps, towingRoute, TOWING));
@@ -368,7 +354,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             } catch { /* Show an explicitly labelled illustrative route instead. */ }
           }
           if (cancelled) return;
-          routesRef.current = { passenger: passengerRoute, towing: towingRoute, approach: approachRoute };
+          routesRef.current = {
+            passenger: prepareRoute(passengerRoute),
+            towing: prepareRoute(towingRoute),
+            approach: prepareRoute(approachRoute),
+          };
           const pLayer = L.polyline(passengerRoute.map(p => [p.lat, p.lng]), { color: PASSENGER, weight: 5, opacity: 0.85 }).addTo(map);
           const cLayer = L.polyline(towingRoute.map(p => [p.lat, p.lng]), { color: TOWING, weight: 5, opacity: 0.85 }).addTo(map);
           layersRef.current = [pLayer, cLayer];
@@ -407,10 +397,14 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     };
     show(markers.rider, approaching || tripRunning);
     show(markers.towing, tripRunning);
-    moveVehicle(markers.rider, approaching ? route.approach : route.passenger,
-      approaching ? 0 : userProgress, passengerKind, engine);
-    moveVehicle(markers.towing, route.towing, carProgress, "tow", engine);
-  }, [engine, approaching, tripRunning, userProgress, carProgress, passengerKind]);
+    // Live frames own marker coordinates. Store progress is only a HUD readout.
+    if (approaching) moveVehicle(markers.rider, route.approach, 0, passengerKind, engine);
+    else if (tripRunning) {
+      moveVehicle(markers.rider, route.passenger, userProgress, passengerKind, engine);
+      moveVehicle(markers.towing, route.towing, carProgress, "tow", engine);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engine, approaching, tripRunning, passengerKind]);
 
   useEffect(() => {
     if (!engine || (!tripRunning && !approaching)) return;
@@ -427,10 +421,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         const approachPercent = Math.min(100, elapsed / 14500 * 100);
         const marker = markersRef.current.rider;
         if (marker) {
-          const pos = interpolate(routesRef.current.approach, approachPercent);
+          const pos = sampleRoute(routesRef.current.approach, approachPercent);
           if (engineRef.current) moveVehicle(marker, routesRef.current.approach, approachPercent, passengerKind, engineRef.current);
-          if (followRef.current && mapRef.current && now - lastPan > 1800) {
-            mapRef.current.panTo(engineRef.current === "google" ? pos : [pos.lat,pos.lng]);
+          if (followRef.current !== "off" && mapRef.current && now - lastPan > 950) {
+            mapRef.current.panTo(engineRef.current === "google" ? pos : [pos.lat,pos.lng],
+              engineRef.current === "leaflet" ? { animate:true, duration:0.8 } : undefined);
             lastPan = now;
           }
         }
@@ -438,12 +433,20 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       } else if (currentStatus === "TRIP_STARTED" || currentStatus === "USER_ARRIVED") {
         const up = currentStatus === "USER_ARRIVED" ? 100 : Math.min(100, fromUser + elapsed / 38000 * 100);
         const cp = Math.min(100, fromCar + elapsed / 55000 * 100);
-        if (followRef.current && mapRef.current && now - lastPan > 1800) {
-          const location = interpolate(routesRef.current.passenger, up);
-          mapRef.current.panTo(engineRef.current === "google" ? location : [location.lat, location.lng]);
+        // Move both vehicles each animation frame; write readable HUD progress
+        // at a lower rate to keep React renders and phone battery usage down.
+        if (engineRef.current) {
+          moveVehicle(markersRef.current.rider, routesRef.current.passenger, up, passengerKind, engineRef.current);
+          moveVehicle(markersRef.current.towing, routesRef.current.towing, cp, "tow", engineRef.current);
+        }
+        if (followRef.current !== "off" && mapRef.current && now - lastPan > 950) {
+          const route = followRef.current === "tow" ? routesRef.current.towing : routesRef.current.passenger;
+          const location = sampleRoute(route, followRef.current === "tow" ? cp : up);
+          mapRef.current.panTo(engineRef.current === "google" ? location : [location.lat, location.lng],
+            engineRef.current === "leaflet" ? { animate:true, duration:0.8 } : undefined);
           lastPan = now;
         }
-        if (now - last > 300) {
+        if (now - last > 430) {
           updateLiveProgress(Math.round(up), Math.round(cp), Math.ceil((100 - up) / 100 * 2), Math.ceil((100 - cp) / 100 * 3));
           last = now;
         }
@@ -514,12 +517,22 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           className="trobos-map-control disabled:opacity-40" aria-label="Gunakan lokasi perangkat" title="Gunakan GPS">
           <Crosshair size={19}/>
         </button>
-        {(approaching || tripRunning) && <button type="button" onClick={() => setFollow(!follow)}
-          className={"trobos-map-control " + (follow ? "text-[#C27651] ring-2 ring-[#C27651]/40" : "")}
-          aria-pressed={follow} aria-label="Ikuti kendaraan animasi">
+        {(approaching || tripRunning) && <button type="button" onClick={() => setFollowTarget(f => f === "off" ? "passenger" : f === "passenger" ? "tow" : "off")}
+          className={"trobos-map-control " + (followTarget !== "off" ? "text-[#C27651] ring-2 ring-[#C27651]/40" : "")}
+          aria-pressed={followTarget !== "off"}
+          aria-label={followTarget === "off" ? "Ikuti kendaraan penumpang" : followTarget === "passenger" ? "Alihkan kamera ke towing" : "Matikan kamera mengikuti kendaraan"}
+          title={followTarget === "off" ? "Ikuti penumpang" : followTarget === "passenger" ? "Ikuti towing" : "Matikan ikuti kendaraan"}>
           <Navigation2 size={19}/>
         </button>}
       </div>
+      {followTarget !== "off" && (approaching || tripRunning) && (
+        <div className="absolute z-10 top-[235px] right-4 lg:top-[164px] pointer-events-none">
+          <span className="rounded-xl bg-white/95 dark:bg-[#1A2B3B]/95 text-slate-800 dark:text-slate-100 border border-white/50 dark:border-white/10 px-3 py-2 text-[11px] font-semibold shadow-md">
+            <Navigation2 size={12} className="inline mr-1"/>
+            Mengikuti {followTarget === "tow" ? "towing" : "penumpang"}
+          </span>
+        </div>
+      )}
       <div className="absolute z-10 right-4 bottom-[min(22rem,45%)] lg:bottom-5 hidden sm:flex items-center gap-2 text-xs text-white/95">
         <span className="rounded-full bg-[#367EAB] px-2.5 py-1.5 shadow-sm">● Penumpang</span>
         <span className="rounded-full bg-[#C27651] px-2.5 py-1.5 shadow-sm">● Mobil</span>
