@@ -195,7 +195,7 @@ export const useTrobosStore = create<TrobosStore>()(
       setTutorialOpen: (open) => set({ isTutorialOpen: open }),
       setChatOpen: (open) => set({ isChatOpen: open }),
       setMapFocus: (mapFocus) => set({ mapFocus }),
-      setServiceType: (serviceType) => set({ serviceType }),
+      setServiceType: (serviceType) => set({ serviceType, carDestinationType: serviceType === "MECHANIC" ? "WORKSHOP" : "SAME_AS_PASSENGER" }),
       setPaymentMethod: (paymentMethod) => set({ paymentMethod }),
       setDamagePhoto: (url, note = "") => set({ damagePhotoUrl: url, damagePhotoNote: note }),
 
@@ -294,10 +294,8 @@ export const useTrobosStore = create<TrobosStore>()(
         const activeVeh =
           state.vehicles.find((v) => v.id === state.activeVehicleId) || state.vehicles[0];
         const dest = destination || state.selectedDestination;
-        const workshop = destination
-          ? nearestDemoWorkshop(dest, WORKSHOP_DESTINATIONS) || state.selectedWorkshop
-          : state.selectedWorkshop;
-        const carDest = state.serviceType === "MECHANIC" && state.carDestinationType === "WORKSHOP" ? workshop : dest;
+        const workshop = nearestDemoWorkshop(dest, WORKSHOP_DESTINATIONS) || state.selectedWorkshop;
+        const carDest = state.serviceType === "MECHANIC" ? workshop : dest;
 
         const problem =
           BREAKDOWN_PROBLEMS.find((p) => p.id === state.selectedProblemId) ||
@@ -321,7 +319,7 @@ export const useTrobosStore = create<TrobosStore>()(
           origin: state.pickupLocation,
           destination: dest,
           carDestination: carDest,
-          carDestinationType: state.carDestinationType,
+          carDestinationType: state.serviceType === "MECHANIC" ? "WORKSHOP" : "SAME_AS_PASSENGER",
           problem,
           passengerCount: state.passengerCount,
           passengerTransport,
@@ -352,7 +350,9 @@ export const useTrobosStore = create<TrobosStore>()(
         if (!vehicle || !Number.isInteger(state.passengerCount) || state.passengerCount < 1 || state.passengerCount > 8) return;
         const mechanic = state.serviceType === "MECHANIC";
         const destination = state.selectedDestination;
-        const carDestination = mechanic && state.carDestinationType === "WORKSHOP" ? state.selectedWorkshop : destination;
+        const carDestination = mechanic
+          ? nearestDemoWorkshop(destination, WORKSHOP_DESTINATIONS) || state.selectedWorkshop
+          : destination;
         const fare = calculateDemoFare({
           serviceType: state.serviceType,
           origin: state.pickupLocation,
@@ -374,7 +374,7 @@ export const useTrobosStore = create<TrobosStore>()(
             problem,
             destination,
             carDestination,
-            carDestinationType: mechanic ? state.carDestinationType : "SAME_AS_PASSENGER",
+            carDestinationType: mechanic ? "WORKSHOP" : "SAME_AS_PASSENGER",
             damagePhotoUrl: state.damagePhotoUrl,
             damagePhotoNote: state.damagePhotoNote,
             handover: { ...INITIAL_HANDOVER },
@@ -602,8 +602,10 @@ export const useTrobosStore = create<TrobosStore>()(
           paymentMethod: state.paymentMethod,
           origin: state.pickupLocation,
           destination: state.selectedDestination,
-          carDestination: state.serviceType === "MECHANIC" && state.carDestinationType === "WORKSHOP" ? state.selectedWorkshop : state.selectedDestination,
-          carDestinationType: state.serviceType === "MECHANIC" ? state.carDestinationType : "SAME_AS_PASSENGER",
+          carDestination: state.serviceType === "MECHANIC"
+            ? nearestDemoWorkshop(state.selectedDestination, WORKSHOP_DESTINATIONS) || state.selectedWorkshop
+            : state.selectedDestination,
+          carDestinationType: state.serviceType === "MECHANIC" ? "WORKSHOP" : "SAME_AS_PASSENGER",
           problem,
           passengerCount: state.passengerCount,
           passengerTransport,

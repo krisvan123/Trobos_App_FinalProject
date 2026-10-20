@@ -96,6 +96,13 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
     const remoteMode = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     confirmBooking();
     if (!remoteMode) return;
+    // Saving a demo record is optional. Guests may explore the full booking
+    // and tracking flow without creating an account.
+    try {
+      const identity = await fetch("/api/auth", { cache: "no-store" });
+      const session = await identity.json().catch(() => ({}));
+      if (!identity.ok || !session.authenticated) return;
+    } catch { return; }
     const trip = useTrobosStore.getState().currentTrip;
     if (!trip) return;
     setSubmitting(true);
