@@ -10,6 +10,8 @@ export function DualJourneyTracker() {
   const userArrivedAtDest = useTrobosStore(s => s.userArrivedAtDest);
   const carArrivedAtDest = useTrobosStore(s => s.carArrivedAtDest);
   const setChatOpen = useTrobosStore(s => s.setChatOpen);
+  const mapFocus = useTrobosStore(s => s.mapFocus);
+  const setMapFocus = useTrobosStore(s => s.setMapFocus);
   const [notice, setNotice] = useState("");
   if (!currentTrip) return null;
   const p = Math.min(100, Math.max(0, currentTrip.userProgressPercent ?? 0));
@@ -30,23 +32,30 @@ export function DualJourneyTracker() {
           <span className="trobos-stage-icon"><Route size={23}/></span>
         </div>
         <div className="trobos-journey-rows">
-          <div className="trobos-journey-row">
+          <button type="button" onClick={() => setMapFocus("passenger")}
+            aria-pressed={mapFocus === "passenger"}
+            aria-label="Fokuskan peta ke kendaraan penumpang"
+            className={"trobos-journey-row trobos-focus-row " + (mapFocus === "passenger" ? "is-following" : "")}>
             <div className="trobos-journey-symbol sky">{transport.type === "MOTOR" ? <Bike size={22}/> : <CarFront size={22}/>}</div>
             <div className="trobos-journey-info">
-              <div className="trobos-journey-title"><strong>Anda & penumpang</strong><span>{passengerDone ? "Tiba" : p + "%"}</span></div>
+              <div className="trobos-journey-title"><strong>Anda & penumpang</strong><span>{mapFocus === "passenger" ? "● Ikuti" : passengerDone ? "Tiba" : p + "%"}</span></div>
               <p>{currentTrip.destination.name}</p>
               <div className="trobos-progress-track"><i style={{width:p + "%",background:"#367EAB"}}/></div>
             </div>
-          </div>
-          <div className="trobos-journey-row">
+          </button>
+          <button type="button" onClick={() => setMapFocus("tow")}
+            aria-pressed={mapFocus === "tow"}
+            aria-label="Fokuskan peta ke kendaraan towing"
+            className={"trobos-journey-row trobos-focus-row " + (mapFocus === "tow" ? "is-following" : "")}>
             <div className="trobos-journey-symbol copper"><Truck size={22}/></div>
             <div className="trobos-journey-info">
-              <div className="trobos-journey-title"><strong>Mobil & towing</strong><span>{c === 100 ? "Tiba" : c + "%"}</span></div>
+              <div className="trobos-journey-title"><strong>Mobil & towing</strong><span>{mapFocus === "tow" ? "● Ikuti" : c === 100 ? "Tiba" : c + "%"}</span></div>
               <p>{currentTrip.carDestination.name}</p>
               <div className="trobos-progress-track"><i style={{width:c + "%",background:"#C27651"}}/></div>
             </div>
-          </div>
+          </button>
         </div>
+        <p className="trobos-focus-hint">Ketuk salah satu kendaraan untuk mengikuti pergerakannya di peta.</p>
         <div className="trobos-journey-meta">
           <span><Users size={15}/> {currentTrip.passengerCount} penumpang</span>
           <span><Check size={15}/> PIN & inspeksi demo</span>

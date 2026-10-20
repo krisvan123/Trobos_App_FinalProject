@@ -214,7 +214,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const engineRef = useRef<MapSystem | null>(null);
   const [engine, setEngine] = useState<MapSystem | null>(null);
   const [message, setMessage] = useState("");
-  const [followTarget, setFollowTarget] = useState<"off"|"passenger"|"tow">("off");
+  const followTarget = useTrobosStore(s => s.mapFocus);
+  const setFollowTarget = useTrobosStore(s => s.setMapFocus);
   const followRef = useRef(followTarget);
   useEffect(() => { followRef.current = followTarget; }, [followTarget]);
   const [routeMode, setRouteMode] = useState<"roads" | "illustration">("illustration");
@@ -509,7 +510,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         {message && <p role="status" className="mt-2 rounded-xl px-3 py-2 bg-white/95 dark:bg-[#192633]/95 text-xs text-slate-700 dark:text-slate-200">{message}</p>}
       </div>
       <div className="absolute z-20 top-[92px] right-4 lg:top-5 flex flex-col gap-2">
-        <button type="button" onClick={() => setRecenterId(x => x + 1)}
+        <button type="button" onClick={() => { setFollowTarget("off"); setRecenterId(x => x + 1); }}
           className="trobos-map-control" aria-label="Tampilkan seluruh rute" title="Tampilkan seluruh rute">
           <Layers3 size={19}/>
         </button>
@@ -517,7 +518,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           className="trobos-map-control disabled:opacity-40" aria-label="Gunakan lokasi perangkat" title="Gunakan GPS">
           <Crosshair size={19}/>
         </button>
-        {(approaching || tripRunning) && <button type="button" onClick={() => setFollowTarget(f => f === "off" ? "passenger" : f === "passenger" ? "tow" : "off")}
+        {(approaching || tripRunning) && <button type="button" onClick={() => setFollowTarget(followTarget === "off" ? "passenger" : followTarget === "passenger" ? "tow" : "off")}
           className={"trobos-map-control " + (followTarget !== "off" ? "text-[#C27651] ring-2 ring-[#C27651]/40" : "")}
           aria-pressed={followTarget !== "off"}
           aria-label={followTarget === "off" ? "Ikuti kendaraan penumpang" : followTarget === "passenger" ? "Alihkan kamera ke towing" : "Matikan kamera mengikuti kendaraan"}

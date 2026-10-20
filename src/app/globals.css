@@ -936,3 +936,15 @@ body {
   .tr-auth-side { padding:42px 19px 64px; }
   .tr-auth-card h1 { font-size:35px; }
 }
+
+/* The entire trip card is a tap target for switching the map camera. */
+.trobos-journey-row.trobos-focus-row {
+  width:100%; min-height:78px; text-align:left; appearance:none; cursor:pointer;
+  transition:border-color .18s ease, background-color .18s ease,transform .18s ease;
+}
+.trobos-journey-row.trobos-focus-row:hover { border-color:var(--tr-accent); transform:translateY(-1px); }
+.trobos-journey-row.trobos-focus-row.is-following {
+  border-color:var(--tr-accent); background:rgba(194,118,81,.10);
+  box-shadow:inset 0 0 0 1px rgba(194,118,81,.14);
+}
+.trobos-focus-hint { margin-top:11px; font-size:11px; line-height:1.5; color:var(--tr-muted); }

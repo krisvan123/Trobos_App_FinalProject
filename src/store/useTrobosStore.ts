@@ -37,6 +37,7 @@ interface TrobosStore {
   hasSeenTutorial: boolean;
   isTutorialOpen: boolean;
   isChatOpen: boolean;
+  mapFocus: "off" | "passenger" | "tow";
   user: UserProfile;
   pickupLocation: LocationPoint;
   setPickupLocation: (location: LocationPoint) => void;
@@ -68,6 +69,7 @@ interface TrobosStore {
   setHasSeenTutorial: (seen: boolean) => void;
   setTutorialOpen: (open: boolean) => void;
   setChatOpen: (open: boolean) => void;
+  setMapFocus: (focus: "off" | "passenger" | "tow") => void;
   login: (email?: string, name?: string) => void;
   logout: () => void;
   setServiceType: (service: ServiceType) => void;
@@ -139,6 +141,7 @@ export const useTrobosStore = create<TrobosStore>()(
       hasSeenTutorial: false,
       isTutorialOpen: false,
       isChatOpen: false,
+      mapFocus: "off",
       user: MOCK_USER,
       pickupLocation: MOCK_LOCATIONS.current,
       vehicles: MOCK_VEHICLES,
@@ -189,6 +192,7 @@ export const useTrobosStore = create<TrobosStore>()(
       setHasSeenTutorial: (seen) => set({ hasSeenTutorial: seen }),
       setTutorialOpen: (open) => set({ isTutorialOpen: open }),
       setChatOpen: (open) => set({ isChatOpen: open }),
+      setMapFocus: (mapFocus) => set({ mapFocus }),
       setServiceType: (serviceType) => set({ serviceType }),
       setPaymentMethod: (paymentMethod) => set({ paymentMethod }),
       setDamagePhoto: (url, note = "") => set({ damagePhotoUrl: url, damagePhotoNote: note }),
@@ -560,6 +564,7 @@ export const useTrobosStore = create<TrobosStore>()(
         get().stopAutoSimulation();
         set({
           currentTrip: null,
+          mapFocus: "off",
           isDemoRunning: false,
         });
       },
@@ -571,7 +576,7 @@ export const useTrobosStore = create<TrobosStore>()(
           state.vehicles.find((v) => v.id === state.activeVehicleId) || state.vehicles[0];
 
         if (targetStatus === "IDLE") {
-          set({ currentTrip: null, isDemoRunning: false });
+          set({ currentTrip: null, mapFocus: "off", isDemoRunning: false });
           return;
         }
 
