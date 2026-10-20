@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Trobos — Terobos Macet, Selamatkan Waktu",
   description:
-    "Layanan evakuasi mobilitas darurat dengan sistem Tandem: Rider motor membawa Anda menembus macet, Driver membawa mobil Anda sampai ke tujuan dengan aman.",
+    "Prototipe akademik mobilitas TROBOS: simulasi layanan tandem, evakuasi mobil, dan dua perjalanan di peta. Bukan layanan darurat sungguhan.",
   keywords: [
     "Trobos",
     "Emergency Mobility",
@@ -24,9 +24,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: "#0A0F1D",
+  themeColor: "#101B25",
 };
 
 import { ThemeInitializer } from "@/components/common/ThemeInitializer";

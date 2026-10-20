@@ -138,7 +138,8 @@ function routeFromGoogle(start: Position, end: Position): Promise<Position[]> {
 function fitPointsGoogle(map: any, maps: any, points: Position[]) {
   const bounds = new maps.LatLngBounds();
   points.forEach(point => bounds.extend(point));
-  map.fitBounds(bounds, { top: 110, right: 78, bottom: 230, left: 90 });
+  const left = window.innerWidth >= 1024 ? 470 : window.innerWidth >= 768 ? 385 : 48;
+  map.fitBounds(bounds, { top: 95, right: 48, bottom: window.innerWidth < 768 ? 220 : 90, left });
 }
 
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
@@ -164,6 +165,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const [engine, setEngine] = useState<MapSystem | null>(null);
   const [message, setMessage] = useState("");
   const [follow, setFollow] = useState(false);
+  const followRef = useRef(false);
+  useEffect(() => { followRef.current = follow; }, [follow]);
   const [routeMode, setRouteMode] = useState<"roads" | "illustration">("illustration");
   const [recenterId, setRecenterId] = useState(0);
   const dark = theme === "dark";
@@ -256,7 +259,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           const pLayer = L.polyline(passengerRoute.map(p => [p.lat, p.lng]), { color: PASSENGER, weight: 5, opacity: 0.85 }).addTo(map);
           const cLayer = L.polyline(towingRoute.map(p => [p.lat, p.lng]), { color: TOWING, weight: 5, opacity: 0.85 }).addTo(map);
           layersRef.current = [pLayer, cLayer];
-          map.fitBounds(L.latLngBounds([[origin.lat,origin.lng],[passengerDestination.lat,passengerDestination.lng],[carDestination.lat,carDestination.lng]]).pad(.3), { animate: false });
+          map.fitBounds(L.latLngBounds([[origin.lat,origin.lng],[passengerDestination.lat,passengerDestination.lng],[carDestination.lat,carDestination.lng]]).pad(.12), {
+            animate: false,
+            paddingTopLeft: [window.innerWidth >= 1024 ? 420 : window.innerWidth >= 768 ? 350 : 28, 100],
+            paddingBottomRight: [40, window.innerWidth < 768 ? 220 : 30],
+          });
           L.control.zoom({ position: "bottomright" }).addTo(map);
           setRouteMode("illustration");
           // Prevent partial tile layout after the flex container finishes animating.
@@ -302,6 +309,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     if (!engine || (!tripRunning && !approaching)) return;
     let frame = 0;
     let last = 0;
+    let lastPan = 0;
     const start = performance.now();
     const fromUser = userProgress;
     const fromCar = carProgress;
@@ -315,12 +323,20 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           const pos = interpolate(routesRef.current.approach, approachPercent);
           if (engineRef.current === "google") marker.setPosition(pos);
           else marker.setLatLng([pos.lat, pos.lng]);
-          if (follow && mapRef.current && now - last > 1700) mapRef.current.panTo(engineRef.current === "google" ? pos : [pos.lat,pos.lng]);
+          if (followRef.current && mapRef.current && now - lastPan > 1800) {
+            mapRef.current.panTo(engineRef.current === "google" ? pos : [pos.lat,pos.lng]);
+            lastPan = now;
+          }
         }
         if (approachPercent === 100) { setArrived(); return; }
       } else if (currentStatus === "TRIP_STARTED" || currentStatus === "USER_ARRIVED") {
         const up = currentStatus === "USER_ARRIVED" ? 100 : Math.min(100, fromUser + elapsed / 38000 * 100);
         const cp = Math.min(100, fromCar + elapsed / 55000 * 100);
+        if (followRef.current && mapRef.current && now - lastPan > 1800) {
+          const location = interpolate(routesRef.current.passenger, up);
+          mapRef.current.panTo(engineRef.current === "google" ? location : [location.lat, location.lng]);
+          lastPan = now;
+        }
         if (now - last > 300) {
           updateLiveProgress(Math.round(up), Math.round(cp), Math.ceil((100 - up) / 100 * 2), Math.ceil((100 - cp) / 100 * 3));
           last = now;
@@ -334,7 +350,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return () => cancelAnimationFrame(frame);
     // Current progress is sampled only when the trip phase changes, not on every animation tick.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [engine, status, setArrived, updateLiveProgress, userArrivedAtDest, carArrivedAtDest, follow]);
+  }, [engine, status, setArrived, updateLiveProgress, userArrivedAtDest, carArrivedAtDest]);
 
   useEffect(() => {
     if (!engine || !mapRef.current) return;
@@ -347,7 +363,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       map.fitBounds(L.latLngBounds([
         [origin.lat,origin.lng], [passengerDestination.lat,passengerDestination.lng],
         [carDestination.lat,carDestination.lng],
-      ]).pad(.25));
+      ]).pad(.12), {
+        paddingTopLeft: [window.innerWidth >= 1024 ? 420 : window.innerWidth >= 768 ? 350 : 28, 95],
+        paddingBottomRight: [40, window.innerWidth < 768 ? 220 : 30],
+      });
     }
   }, [recenterId, engine, origin, passengerDestination, carDestination]);
 

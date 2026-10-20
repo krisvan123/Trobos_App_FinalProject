@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { useTrobosStore } from "@/store/useTrobosStore";
 import { InteractiveMap } from "@/components/map/InteractiveMap";
@@ -53,7 +53,6 @@ export default function HomePage() {
   const toggleTheme = useTrobosStore(s => s.toggleTheme);
   const isTutorialOpen = useTrobosStore(s => s.isTutorialOpen);
   const setTutorialOpen = useTrobosStore(s => s.setTutorialOpen);
-  const hasSeenTutorial = useTrobosStore(s => s.hasSeenTutorial);
   const isChatOpen = useTrobosStore(s => s.isChatOpen);
   const setChatOpen = useTrobosStore(s => s.setChatOpen);
   const status = currentTrip?.status || "IDLE";
@@ -63,12 +62,6 @@ export default function HomePage() {
     carDestination: serviceType === "MECHANIC" ? selectedWorkshop : selectedDestination,
     serviceType, passengerCount,
   });
-
-  useEffect(() => {
-    if (hasSeenTutorial) return;
-    const timer = window.setTimeout(() => setTutorialOpen(true), 900);
-    return () => window.clearTimeout(timer);
-  }, [hasSeenTutorial, setTutorialOpen]);
 
   return (
     <div className="trobos-home" aria-label="Beranda aplikasi TROBOS">
