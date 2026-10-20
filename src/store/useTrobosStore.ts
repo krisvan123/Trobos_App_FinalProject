@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { calculateDemoFare } from "@/lib/pricing";
 import { persist } from "zustand/middleware";
 import {
   TripStatus,
@@ -273,36 +274,13 @@ export const useTrobosStore = create<TrobosStore>()(
 
         const passengerTransport = getPassengerTransportOption(state.passengerCount);
 
-        // Pricing calculation:
-        // Tandem Macet: Rp 89.000 base total (Rider + Driver)
-        // Mechanic / Derek: Rp 220.000 (Towing flatbed + Armada pengganti)
-        let total = 89000;
-        let baseFare = 35000;
-        let emergencyService = 30000;
-        let towingFare = 0;
-        let distanceFare = 14000;
-        let surgeFare = 10000;
-
-        if (state.serviceType === 'MECHANIC') {
-          total = 220000;
-          baseFare = 45000;
-          emergencyService = 45000;
-          towingFare = 110000;
-          distanceFare = 20000;
-          surgeFare = 0;
-        }
-
-        const calculatedFare = {
-          baseFare,
-          emergencyService,
-          distanceFare,
-          towingFare,
-          surgeFare,
-          totalFare: total,
-          distanceKm: 6.8,
-          estimatedPassengerMinutes: 18,
-          estimatedTowingMinutes: 32,
-        };
+        const calculatedFare = calculateDemoFare({
+          serviceType: state.serviceType,
+          origin: state.pickupLocation,
+          passengerDestination: dest,
+          carDestination: carDest,
+          passengerCount: state.passengerCount,
+        });
 
         const newTrip: ActiveTrip = {
           id: `TRB-${Math.floor(10000 + Math.random() * 90000)}`,
@@ -324,8 +302,8 @@ export const useTrobosStore = create<TrobosStore>()(
           handover: INITIAL_HANDOVER,
           userProgressPercent: 0,
           carProgressPercent: 0,
-          userEtaMinutes: 18,
-          carEtaMinutes: 32,
+          userEtaMinutes: calculatedFare.estimatedPassengerMinutes,
+          carEtaMinutes: calculatedFare.estimatedTowingMinutes,
           damagePhotoUrl: state.damagePhotoUrl,
           damagePhotoNote: state.damagePhotoNote,
           createdAt: new Date().toISOString(),
@@ -342,11 +320,13 @@ export const useTrobosStore = create<TrobosStore>()(
         const vehicle = state.vehicles.find((v) => v.id === state.activeVehicleId);
         if (!vehicle || !Number.isInteger(state.passengerCount) || state.passengerCount < 1 || state.passengerCount > 8) return;
         const mechanic = state.serviceType === "MECHANIC";
-        const baseFare = mechanic ? 45000 : 35000;
-        const emergencyService = mechanic ? 45000 : 30000;
-        const towingFare = mechanic ? 110000 : 0;
-        const distanceFare = mechanic ? 20000 : 14000;
-        const surgeFare = mechanic ? 0 : 10000;
+        const fare = calculateDemoFare({
+          serviceType: state.serviceType,
+          origin: state.pickupLocation,
+          passengerDestination: destination,
+          carDestination,
+          passengerCount: state.passengerCount,
+        });
         const destination = state.selectedDestination;
         const carDestination = mechanic && state.carDestinationType === "WORKSHOP" ? state.selectedWorkshop : destination;
         const problem = BREAKDOWN_PROBLEMS.find((p) => p.id === state.selectedProblemId) || BREAKDOWN_PROBLEMS[0];
@@ -366,13 +346,7 @@ export const useTrobosStore = create<TrobosStore>()(
             damagePhotoUrl: state.damagePhotoUrl,
             damagePhotoNote: state.damagePhotoNote,
             handover: { ...INITIAL_HANDOVER },
-            fare: {
-              baseFare, emergencyService, towingFare, distanceFare, surgeFare,
-              totalFare: baseFare + emergencyService + towingFare + distanceFare + surgeFare,
-              distanceKm: 6.8,
-              estimatedPassengerMinutes: 18,
-              estimatedTowingMinutes: 32,
-            },
+            fare,
           },
         });
       },
