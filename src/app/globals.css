@@ -548,3 +548,19 @@ body {
 @media (max-width:767px) {
   .trobos-booking-sheet { max-height:calc(100dvh - 35px)!important; border-radius:26px 26px 0 0!important; }
 }
+
+/* No CARTO API key: paint the official OSM standard layer in an elegant
+   blue-grey night palette. Only raster tile pixels are recolored; route
+   overlays, markers, controls, and OSM attribution retain original colors. */
+.trobos-live-map .leaflet-tile.trobos-osm-tiles {
+  transition: opacity .15s ease;
+}
+.dark .trobos-live-map .leaflet-tile.trobos-osm-tiles {
+  filter: invert(0.92) hue-rotate(183deg) saturate(0.72) brightness(0.78) contrast(1.1);
+}
+.dark .trobos-live-map .leaflet-container { background: #15232f; }
+.dark .trobos-live-map .leaflet-control-attribution {
+  background: rgba(19, 32, 45, .92);
+  color: #c9d6df;
+}
+.dark .trobos-live-map .leaflet-control-attribution a { color: #d7e2e9; }

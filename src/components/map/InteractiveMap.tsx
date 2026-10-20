@@ -22,6 +22,11 @@ type Position = { lat: number; lng: number };
 type MapSystem = "google" | "leaflet";
 type MapGlobal = Window & { google?: { maps: any }; L?: any; __trobosGoogle?: Promise<void>; __trobosLeaflet?: Promise<void> };
 const googleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+const cartoKey = process.env.NEXT_PUBLIC_CARTO_BASEMAPS_API_KEY || "";
+// OSM's standard raster tiles work without a key for modest demo traffic.
+// CARTO now requires a separate key, including for its dark-mode raster style.
+const OSM_TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>';
 const PASSENGER = "#367EAB";
 const TOWING = "#C27651";
 const roadStyle = [
@@ -230,6 +235,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       });
       try { mapRef.current?.remove?.(); } catch { /* map already detached */ }
       mapRef.current = null;
+      tileRef.current = null;
       markersRef.current = {};
       layersRef.current = [];
       engineRef.current = null;
@@ -280,12 +286,38 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           const L = w.L!;
           map = L.map(hostRef.current, { zoomControl: false, attributionControl: true, preferCanvas: true });
           mapRef.current = map;
-          tileRef.current = L.tileLayer(
-            dark
-              ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-            { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors &copy; CARTO" }
-          ).addTo(map);
+          // Keyless default: real OSM street tiles. Dark appearance is a CSS
+          // filter on the raster tiles ONLY, leaving vehicle markers colorful.
+          // A separately configured CARTO key enables native CARTO dark/light.
+          const osMtiles = () => L.tileLayer(OSM_TILE_URL, {
+            maxZoom: 19,
+            attribution: OSM_ATTRIBUTION,
+            className: "trobos-osm-tiles",
+          });
+          const cartoUrl = dark
+            ? "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+            : "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
+          let tileLayer = cartoKey
+            ? L.tileLayer(cartoUrl + "?key=" + encodeURIComponent(cartoKey), {
+                maxZoom: 19,
+                attribution: OSM_ATTRIBUTION + " &copy; CARTO",
+                className: "trobos-carto-tiles",
+              })
+            : osMtiles();
+          tileRef.current = tileLayer.addTo(map);
+          if (cartoKey) {
+            // An invalid/expired key must NEVER leave an entire viewport
+            // covered by "API KEY REQUIRED" watermark tiles.
+            let switchedToOsm = false;
+            tileLayer.on("tileerror", () => {
+              if (cancelled || switchedToOsm || !mapRef.current) return;
+              switchedToOsm = true;
+              map.removeLayer(tileLayer);
+              tileLayer = osMtiles();
+              tileRef.current = tileLayer.addTo(map);
+              setMessage("Gaya peta CARTO tidak tersedia. Menggunakan OpenStreetMap sebagai cadangan.");
+            });
+          }
           const icon = (symbol: string, type: string) => L.divIcon({
             html: markerMarkup(symbol, type), className: "trobos-marker-shell",
             iconSize: [54, 54], iconAnchor: [27, 27],
