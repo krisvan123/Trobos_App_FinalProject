@@ -124,7 +124,7 @@ export default function HomePage() {
             <div>
               <EmergencyButton onClick={handleOpenBooking} />
               <p className="text-xs text-slate-600 dark:text-slate-300 text-center font-medium mt-2.5">
-                Mobil mogok? Tenang. Kami bantu evakuasi mobil dan mengantarkan Anda ke tujuan.
+                Simulasikan bantuan derek dan pengantaran penumpang, tanpa mengirim pesanan nyata.
               </p>
             </div>
 

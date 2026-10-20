@@ -70,6 +70,9 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
   const damagePhotoUrl = useTrobosStore((s) => s.damagePhotoUrl);
   const setDamagePhoto = useTrobosStore((s) => s.setDamagePhoto);
   const confirmBooking = useTrobosStore((s) => s.confirmBooking);
+  const returnToBooking = useTrobosStore((s) => s.returnToBooking);
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -79,8 +82,30 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
 
   const passengerTransport = getPassengerTransportOption(passengerCount);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    if (submitting) return;
+    setSubmitError("");
+    const remoteMode = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     confirmBooking();
+    if (!remoteMode) return;
+    const trip = useTrobosStore.getState().currentTrip;
+    if (!trip) return;
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/trips", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trip }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || "Gagal menyimpan permintaan demo");
+      }
+    } catch (reason) {
+      returnToBooking();
+      setSubmitError(reason instanceof Error ? reason.message : "Koneksi gagal. Coba lagi.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -583,14 +608,16 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
         </div>
 
         {/* 8. Action Buttons (DOMINANT CTA: MINTA BANTUAN) */}
+        {submitError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs text-red-700">{submitError}</p>}
         <div className="pt-2 space-y-2">
           <button
             type="button"
             onClick={handleConfirm}
+            disabled={submitting}
             className="w-full py-4 rounded-2xl bg-[#FF4D00] hover:bg-[#E64400] active:scale-[0.99] text-white font-black text-base shadow-elevated transition flex items-center justify-center gap-2"
           >
             <Zap className="w-5 h-5 fill-white" />
-            <span>SIMULASIKAN PERMINTAAN</span>
+            <span>{submitting ? "Menyimpan permintaan demo..." : "SIMULASIKAN PERMINTAAN"}</span>
           </button>
 
           <button
