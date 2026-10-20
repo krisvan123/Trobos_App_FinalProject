@@ -1,0 +1,11 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { calculateDemoFare, haversineKm } from "../src/lib/pricing.ts";
+const a={lat:-6.2155,lng:106.8217}, b={lat:-6.2244,lng:106.8098}, far={lat:-6.1256,lng:106.6559};
+const input=(more={})=>({serviceType:"MECHANIC",origin:a,passengerDestination:b,carDestination:b,passengerCount:1,...more});
+test("identical coordinates have zero great-circle distance",()=>assert.equal(haversineKm(a,a),0));
+test("total equals sum of itemized charges",()=>{const f=calculateDemoFare(input());assert.equal(f.totalFare,f.baseFare+f.emergencyService+f.towingFare+f.distanceFare+f.surgeFare)});
+test("farther destination costs more",()=>assert.ok(calculateDemoFare(input({carDestination:far,passengerDestination:far})).totalFare>calculateDemoFare(input()).totalFare));
+test("larger group costs more",()=>assert.ok(calculateDemoFare(input({passengerCount:7})).totalFare>calculateDemoFare(input()).totalFare));
+test("tandem has no towing fee",()=>assert.equal(calculateDemoFare(input({serviceType:"TANDEM"})).towingFare,0));
+test("invalid passenger count rejected",()=>assert.throws(()=>calculateDemoFare(input({passengerCount:0})),RangeError));
