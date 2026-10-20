@@ -67,7 +67,7 @@ interface TrobosStore {
   setHasSeenTutorial: (seen: boolean) => void;
   setTutorialOpen: (open: boolean) => void;
   setChatOpen: (open: boolean) => void;
-  login: (email?: string) => void;
+  login: (email?: string, name?: string) => void;
   logout: () => void;
   setServiceType: (service: ServiceType) => void;
   setPaymentMethod: (method: PaymentMethod) => void;
@@ -82,6 +82,7 @@ interface TrobosStore {
   sendChatMessage: (text: string) => void;
   startBooking: (destination?: LocationPoint) => void;
   confirmBooking: () => void;
+  returnToBooking: () => void;
   assignTandem: () => void;
   setApproaching: () => void;
   setArrived: () => void;
@@ -191,10 +192,10 @@ export const useTrobosStore = create<TrobosStore>()(
       setPaymentMethod: (paymentMethod) => set({ paymentMethod }),
       setDamagePhoto: (url, note = "") => set({ damagePhotoUrl: url, damagePhotoNote: note }),
 
-      login: (email) => {
+      login: (email, name) => {
         set((state) => ({
           isAuthenticated: true,
-          user: email ? { ...state.user, email } : state.user,
+          user: { ...state.user, ...(email ? { email } : {}), ...(name ? { name } : {}) },
         }));
       },
 
@@ -375,6 +376,10 @@ export const useTrobosStore = create<TrobosStore>()(
           },
         });
       },
+
+      returnToBooking: () => set((state) => state.currentTrip ? ({
+        currentTrip: { ...state.currentTrip, status: "REQUESTED", tandem: null },
+      }) : {}),
 
       assignTandem: () => {
         set((state) => {

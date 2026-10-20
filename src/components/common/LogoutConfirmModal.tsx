@@ -19,7 +19,10 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleConfirmLogout = () => {
+  const handleConfirmLogout = async () => {
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "logout" }) }).catch(() => null);
+    }
     logout();
     onClose();
     router.push("/login");

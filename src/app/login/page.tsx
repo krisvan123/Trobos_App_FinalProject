@@ -3,112 +3,91 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Zap, Mail, Lock, ArrowRight } from "lucide-react";
+import { Zap, Mail, Lock, ArrowRight, AlertCircle, PlayCircle } from "lucide-react";
 import { useTrobosStore } from "@/store/useTrobosStore";
+
+const hasBackend = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 export default function LoginPage() {
   const router = useRouter();
   const login = useTrobosStore((s) => s.login);
-  const [identifier, setIdentifier] = useState("andi.pratama@gmail.com");
-  const [password, setPassword] = useState("••••••••");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const startDemo = () => { login(); router.push("/app"); };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError("");
+    if (!hasBackend) { startDemo(); return; }
     setIsLoading(true);
-    login(identifier);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "login", email: identifier, password }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body.authenticated) throw new Error(body.error || "Tidak dapat masuk.");
+      login(identifier);
       router.push("/app");
-    }, 400);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Terjadi kesalahan saat login.");
+    } finally { setIsLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        {/* Brand Header */}
-        <div className="text-center space-y-1.5">
-          <Link href="/" className="inline-flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 rounded-2xl bg-[#FF4D00] flex items-center justify-center shadow-sm">
-              <Zap className="w-5 h-5 text-white fill-white" />
-            </div>
-            <span className="text-2xl font-black tracking-tight text-slate-900">
-              TROBOS
+    <main className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center px-4 py-12">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <Link href="/" className="inline-flex items-center gap-2 mb-5">
+            <span className="w-11 h-11 bg-[#FF4D00] rounded-2xl text-white inline-flex items-center justify-center">
+              <Zap className="w-6 h-6 fill-white" />
             </span>
+            <span className="text-2xl font-black tracking-tight">TROBOS</span>
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            Selamat Datang Kembali
-          </h1>
-          <p className="text-xs text-slate-500">
-            Masuk untuk mendapatkan bantuan perjalanan Anda.
-          </p>
+          <h1 className="text-2xl font-black">Selamat Datang Kembali</h1>
+          <p className="text-sm text-slate-500 mt-2">Masuk untuk melihat perjalanan dan kendaraan Anda.</p>
         </div>
-
-        {/* Login Card */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+        {!hasBackend && <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-900">
+          <strong>Mode Prototipe.</strong> Autentikasi server belum dikonfigurasi. Tombol demo tidak membuat akun atau mengirim permintaan bantuan sungguhan.
+        </div>}
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+          {error && <p role="alert" className="rounded-xl bg-red-50 text-red-700 p-3 text-sm flex gap-2"><AlertCircle className="w-4 h-4 shrink-0" />{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Email atau Nomor Telepon
-              </label>
+              <label htmlFor="identifier" className="block text-sm font-semibold mb-2">Email</label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  required
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-[#FF4D00]"
-                />
+                <Mail className="absolute top-3.5 left-3.5 w-4 h-4 text-slate-400" />
+                <input id="identifier" type="email" autoComplete="email" value={identifier} onChange={(event) => setIdentifier(event.target.value)} required
+                  placeholder="nama@email.com" className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
               </div>
             </div>
-
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-semibold text-slate-700">
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-orange-600 hover:text-orange-700 font-semibold"
-                >
-                  Lupa password?
-                </Link>
+              <div className="flex justify-between mb-2">
+                <label htmlFor="password" className="text-sm font-semibold">Password</label>
+                {hasBackend && <Link href="/forgot-password" className="text-xs font-semibold text-[#FF4D00]">Lupa password?</Link>}
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-[#FF4D00]"
-                />
+                <Lock className="absolute top-3.5 left-3.5 w-4 h-4 text-slate-400" />
+                <input id="password" type="password" autoComplete="current-password" minLength={hasBackend ? 8 : undefined}
+                  required value={password} onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Masukkan password" className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
               </div>
             </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3.5 rounded-xl bg-[#FF4D00] hover:bg-[#E64400] text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-1.5"
-            >
-              <span>{isLoading ? "Memproses..." : "Masuk"}</span>
-              <ArrowRight className="w-4 h-4" />
+            <button type="submit" disabled={isLoading} className="w-full bg-[#FF4D00] hover:bg-[#E64400] disabled:opacity-60 text-white rounded-xl py-3.5 flex justify-center items-center gap-2 font-bold">
+              {isLoading ? "Memverifikasi..." : hasBackend ? "Masuk" : "Lanjut ke Demo"} <ArrowRight className="w-4 h-4" />
             </button>
           </form>
-
-          {/* Bottom link */}
-          <div className="mt-5 text-center text-xs text-slate-500">
-            Belum punya akun?{" "}
-            <Link
-              href="/register"
-              className="text-[#FF4D00] hover:underline font-bold"
-            >
-              Daftar di sini
-            </Link>
-          </div>
+          {!hasBackend && <button onClick={startDemo} className="w-full rounded-xl py-3 border border-slate-300 bg-slate-50 hover:bg-slate-100 flex items-center justify-center gap-2 text-sm font-bold">
+            <PlayCircle className="w-4 h-4 text-[#FF4D00]" /> Coba tanpa memasukkan data
+          </button>}
+          <p className="text-center text-sm text-slate-500">
+            Belum punya akun? <Link href="/register" className="font-bold text-[#FF4D00]">Daftar</Link>
+          </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

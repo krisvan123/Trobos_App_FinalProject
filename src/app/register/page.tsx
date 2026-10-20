@@ -10,13 +10,15 @@ export default function RegisterPage() {
   const router = useRouter();
   const login = useTrobosStore((s) => s.login);
   const [formData, setFormData] = useState({
-    name: "Andi Pratama",
-    phone: "081234567890",
-    email: "andi.pratama@gmail.com",
-    password: "••••••••",
-    agreeTerms: true,
+    name: "",
+    phone: "",
+    email: "",
+    password: "",
+    agreeTerms: false,
   });
 
+  const hasBackend = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const [error, setError] = useState("");
   const [step, setStep] = useState<"form" | "onboarding">("form");
   const [onboardingIndex, setOnboardingIndex] = useState(0);
 
@@ -38,10 +40,30 @@ export default function RegisterPage() {
     },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(formData.email);
-    setStep("onboarding");
+    setError("");
+    if (!hasBackend) {
+      login(formData.email, formData.name);
+      setStep("onboarding");
+      return;
+    }
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "register", email: formData.email, password: formData.password, name: formData.name }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Pendaftaran gagal");
+      if (body.pendingVerification) {
+        setError("Periksa email Anda untuk verifikasi, lalu masuk dengan akun baru.");
+        return;
+      }
+      login(formData.email, formData.name);
+      setStep("onboarding");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Gagal mendaftarkan akun");
+    }
   };
 
   const handleNext = () => {
@@ -75,6 +97,8 @@ export default function RegisterPage() {
             </div>
 
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+              {!hasBackend && <p className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">Mode Demo — akun tidak dibuat di server.</p>}
+              {error && <p role="alert" className="text-xs p-3 rounded-xl bg-blue-50 text-blue-800">{error}</p>}
               <form onSubmit={handleSubmit} className="space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -132,6 +156,8 @@ export default function RegisterPage() {
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="password"
+                      autoComplete="new-password"
+                      minLength={8}
                       required
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
