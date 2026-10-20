@@ -504,3 +504,22 @@ body {
 }
 .trobos-preview-action:hover { border-color:var(--tr-accent); background:rgba(194,118,81,.08); }
 .trobos-preview-action svg:first-child { color:var(--tr-accent); }
+
+/* Discreet advanced controls; primary mobile preview lives in the rescue sheet */
+.trobos-studio { position:fixed; z-index:52; right:19px; bottom:22px; display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+.trobos-studio-trigger { display:flex; align-items:center; gap:9px; padding:11px 14px; background:var(--tr-surface); color:var(--tr-ink); box-shadow:var(--tr-shadow); border:1px solid var(--tr-line); border-radius:15px; font-size:12px; font-weight:800; }
+.trobos-studio-trigger svg:first-child { color:var(--tr-accent); }
+.trobos-studio-panel { width:290px; border:1px solid var(--tr-line); border-radius:23px; box-shadow:var(--tr-shadow); background:var(--tr-surface); color:var(--tr-ink); padding:19px; }
+.trobos-studio-top { display:flex; align-items:center; justify-content:space-between; }
+.trobos-studio-top h2 { font-size:20px; font-weight:850; letter-spacing:-.04em; }
+.trobos-studio-top button { padding:6px; border-radius:9px; color:var(--tr-muted); }
+.trobos-studio-panel>p { font-size:11px; line-height:1.5; color:var(--tr-muted); margin:10px 0 14px; }
+.trobos-studio-play { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; background:var(--tr-accent-strong); padding:12px; border-radius:13px; color:#FFF9F5; font-weight:780; font-size:12px; }
+.trobos-studio-phase-head { display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:780; margin:17px 0 9px; }
+.trobos-studio-phase-head button { display:flex; gap:5px; align-items:center; color:var(--tr-muted); }
+.trobos-studio-phases { max-height:260px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; }
+.trobos-studio-phase { width:100%; text-align:left; display:flex; gap:10px; align-items:center; padding:9px 10px; border-radius:10px; background:var(--tr-raised); font-size:11px; font-weight:650; color:var(--tr-muted); }
+.trobos-studio-phase>span { color:var(--tr-accent); font-size:10px; font-weight:850; }
+.trobos-studio-phase.is-active { color:var(--tr-ink); background:rgba(194,118,81,.13); }
+@media (min-width:768px) and (max-width:1023px) { .trobos-studio { bottom:100px; } }
+@media (max-width:767px) { .trobos-studio { display:none; } }

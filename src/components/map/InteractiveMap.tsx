@@ -225,6 +225,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     const objects: any[] = [];
     const cleanup = () => {
       objects.forEach(object => { try { object.setMap?.(null); object.remove?.(); } catch { /* map was destroyed */ } });
+      Object.values(markersRef.current).forEach(marker => {
+        try { marker?.setMap?.(null); marker?.remove?.(); } catch { /* already detached */ }
+      });
       try { mapRef.current?.remove?.(); } catch { /* map already detached */ }
       mapRef.current = null;
       markersRef.current = {};
