@@ -266,7 +266,7 @@ export const useTrobosStore = create<TrobosStore>()(
           state.vehicles.find((v) => v.id === state.activeVehicleId) || state.vehicles[0];
         const dest = destination || state.selectedDestination;
         const workshop = state.selectedWorkshop;
-        const carDest = state.carDestinationType === 'WORKSHOP' ? workshop : dest;
+        const carDest = state.serviceType === "MECHANIC" && state.carDestinationType === "WORKSHOP" ? workshop : dest;
 
         const problem =
           BREAKDOWN_PROBLEMS.find((p) => p.id === state.selectedProblemId) ||
@@ -320,6 +320,8 @@ export const useTrobosStore = create<TrobosStore>()(
         const vehicle = state.vehicles.find((v) => v.id === state.activeVehicleId);
         if (!vehicle || !Number.isInteger(state.passengerCount) || state.passengerCount < 1 || state.passengerCount > 8) return;
         const mechanic = state.serviceType === "MECHANIC";
+        const destination = state.selectedDestination;
+        const carDestination = mechanic && state.carDestinationType === "WORKSHOP" ? state.selectedWorkshop : destination;
         const fare = calculateDemoFare({
           serviceType: state.serviceType,
           origin: state.pickupLocation,
@@ -327,8 +329,6 @@ export const useTrobosStore = create<TrobosStore>()(
           carDestination,
           passengerCount: state.passengerCount,
         });
-        const destination = state.selectedDestination;
-        const carDestination = mechanic && state.carDestinationType === "WORKSHOP" ? state.selectedWorkshop : destination;
         const problem = BREAKDOWN_PROBLEMS.find((p) => p.id === state.selectedProblemId) || BREAKDOWN_PROBLEMS[0];
         set({
           currentTrip: {
@@ -347,6 +347,8 @@ export const useTrobosStore = create<TrobosStore>()(
             damagePhotoNote: state.damagePhotoNote,
             handover: { ...INITIAL_HANDOVER },
             fare,
+            userEtaMinutes: fare.estimatedPassengerMinutes,
+            carEtaMinutes: fare.estimatedTowingMinutes,
           },
         });
       },
