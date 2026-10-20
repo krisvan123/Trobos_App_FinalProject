@@ -132,6 +132,33 @@ export const VehicleHandoverModal: React.FC = () => {
           </div>
         </div>
 
+        {/* Problem confirmation is mandatory before starting a demo journey. */}
+        <button
+          type="button"
+          aria-pressed={handover.problemConfirmed}
+          onClick={() => toggleChecklistItem("problemConfirmed")}
+          className={`w-full rounded-xl border p-3 text-left flex items-start gap-3 transition-colors ${
+            handover.problemConfirmed
+              ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800"
+              : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+          }`}
+        >
+          <span className={`mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${
+            handover.problemConfirmed ? "bg-emerald-600 border-emerald-600 text-white" : "border-slate-400"
+          }`}>
+            {handover.problemConfirmed && <Check className="w-3.5 h-3.5" />}
+          </span>
+          <span>
+            <span className="block font-bold text-xs text-slate-900 dark:text-white">Konfirmasi masalah dan kondisi kendaraan</span>
+            <span className="block text-[11px] text-slate-600 dark:text-slate-300 mt-1">
+              Saya sudah memeriksa lima area kendaraan dan memahami bahwa serah-terima ini adalah simulasi.
+            </span>
+          </span>
+        </button>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          {canHandover ? "Inspeksi demo siap dikonfirmasi." : "Centang kelima bagian bodi dan konfirmasi masalah sebelum melanjutkan."}
+        </p>
+
         {/* Safety Guarantee */}
         <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
