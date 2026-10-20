@@ -1,135 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
-import { FAQS } from "@/lib/mockData";
-import { useTrobosStore } from "@/store/useTrobosStore";
-import {
-  HelpCircle,
-  ChevronDown,
-  ChevronUp,
-  MessageCircle,
-  Phone,
-  Mail,
-  BookOpen,
-} from "lucide-react";
+import React, {useState} from "react";
+import Link from "next/link";
+import {AlertTriangle, ArrowRight, BookOpen, ChevronDown, HelpCircle, PhoneCall} from "lucide-react";
+import {FAQS} from "@/lib/mockData";
+import {useTrobosStore} from "@/store/useTrobosStore";
 
-export default function HelpCenterPage() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const setTutorialOpen = useTrobosStore((s) => s.setTutorialOpen);
-
-  return (
-    <div className="p-4 sm:p-8 max-w-2xl mx-auto w-full space-y-6 text-slate-900 dark:text-slate-100">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <HelpCircle className="w-6 h-6 text-sky-600 dark:text-sky-400" />
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Pusat Bantuan & FAQ
-          </h1>
-        </div>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          Pertanyaan umum seputar layanan evakuasi mobil & derek Trobos.
-        </p>
-      </div>
-
-      {/* Tutorial Quick Access Banner */}
-      <div className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0">
-            <BookOpen className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-xs font-bold text-sky-950 dark:text-sky-200">
-              Baru Pertama Kali Menggunakan Trobos?
-            </h3>
-            <p className="text-[11px] text-sky-700 dark:text-sky-300">
-              Buka panduan interaktif 5 langkah untuk memahami konsep evakuasi Tandem.
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => setTutorialOpen(true)}
-          className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shrink-0 transition"
-        >
-          Lihat Panduan
+export default function HelpPage(){
+  const [expanded,setExpanded]=useState<number|null>(0);
+  const openTutorial=useTrobosStore(s=>s.setTutorialOpen);
+  return <main className="tr-secondary-page">
+    <header className="tr-secondary-intro"><span className="tr-new-eyebrow"><HelpCircle size={15}/> HELP CENTER</span>
+      <h1>Ada yang ingin diketahui?</h1><p>Panduan menggunakan fitur demo TROBOS, memahami perjalanan dua kendaraan, dan membaca status tracking.</p>
+    </header>
+    <div className="tr-secondary-guide">
+      <div><span className="tr-secondary-icon"><BookOpen size={21}/></span><h2>Baru pertama kali mencoba?</h2>
+        <p>Lihat panduan interaktif untuk mengenal booking, pencarian armada, PIN, dan perjalanan.</p>
+      </div><button type="button" onClick={()=>openTutorial(true)}>Buka panduan <ArrowRight size={17}/></button>
+    </div>
+    <section className="tr-secondary-faq" aria-label="Pertanyaan umum">
+      <h2>Pertanyaan umum</h2>
+      {FAQS.map((item,i)=><div key={i} className="tr-secondary-faq-item">
+        <button type="button" onClick={()=>setExpanded(expanded===i?null:i)} aria-expanded={expanded===i}>
+          <span>{item.q}</span><ChevronDown size={18} className={expanded===i?"rotate-180":""}/>
         </button>
-      </div>
-
-      {/* Accordion FAQ */}
-      <div className="space-y-2.5">
-        {FAQS.map((faq, index) => {
-          const isOpen = openIndex === index;
-          return (
-            <div
-              key={index}
-              className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm transition"
-            >
-              <button
-                type="button"
-                onClick={() => setOpenIndex(isOpen ? null : index)}
-                className="w-full p-4 text-left flex items-center justify-between gap-3 text-sm font-bold text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
-              >
-                <span>{faq.q}</span>
-                {isOpen ? (
-                  <ChevronUp className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                )}
-              </button>
-
-              {isOpen && (
-                <div className="px-4 pb-4 text-xs text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-3">
-                  {faq.a}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Direct Contact Channels */}
-      <div className="pt-2">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2.5">
-          Bantuan & Informasi (Prototipe):
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-          <a
-            href="https://www.google.com/search?q=layanan+derek+terdekat"
-            target="_blank"
-            rel="noreferrer"
-            className="p-3 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2.5 text-slate-800 dark:text-slate-200 font-medium"
-          >
-            <MessageCircle className="w-5 h-5 text-emerald-600 shrink-0" />
-            <div>
-              <div className="font-bold">Cari Penyedia Derek</div>
-              <div className="text-[10px] text-slate-400">Cari operator yang tersedia</div>
-            </div>
-          </a>
-
-          <a
-            href="tel:112"
-            className="p-3 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2.5 text-slate-800 dark:text-slate-200 font-medium"
-          >
-            <Phone className="w-5 h-5 text-[#FF4D00] shrink-0" />
-            <div>
-              <div className="font-bold">Nomor Darurat Umum</div>
-              <div className="text-[10px] text-slate-400">112</div>
-            </div>
-          </a>
-
-          <div
-            aria-label="Alamat email TROBOS belum tersedia"
-            className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-800 flex items-center gap-2.5 text-slate-500 dark:text-slate-400"
-          >
-            <Mail className="w-5 h-5 text-sky-600 shrink-0" />
-            <div>
-              <div className="font-bold">Email Demo — Belum Aktif</div>
-              <div className="text-[10px] text-slate-400">Belum Tersedia</div>
-            </div>
-          </div>
-        </div>
+        {expanded===i&&<p>{item.a}</p>}
+      </div>)}
+    </section>
+    <div className="tr-secondary-notice tr-secondary-notice-soft"><AlertTriangle size={19}/>
+      <div><strong>Tidak ada call center atau operator nyata.</strong><p>Untuk masalah di jalan sungguhan, cari operator resmi setempat atau hubungi nomor darurat yang tersedia sesuai situasi.</p>
+        <a href="tel:112" className="tr-secondary-phone"><PhoneCall size={16}/> 112 (jika tersedia)</a>
       </div>
     </div>
-  );
+    <Link href="/app" className="tr-secondary-back">Kembali ke pemesanan <ArrowRight size={17}/></Link>
+  </main>;
 }
