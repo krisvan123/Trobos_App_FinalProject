@@ -434,3 +434,65 @@ body {
   .trobos-hud-pulse { animation:none; }
   .trobos-primary-action:hover { transform:none; }
 }
+
+/* App-like bottom sheets for the active dual-journey simulation */
+.trobos-journey-card {
+  width:100%; overflow-y:auto; max-height:min(78dvh,650px); scrollbar-width:thin;
+  border:1px solid var(--tr-line); border-radius:26px; padding:18px 20px 16px;
+  background:var(--tr-surface); color:var(--tr-ink); box-shadow:var(--tr-shadow);
+}
+.trobos-sheet-handle { width:34px; height:4px; border-radius:9px; background:var(--tr-line); margin:-7px auto 17px; }
+.trobos-sheet-top { display:flex; align-items:flex-start; gap:12px; justify-content:space-between; }
+.trobos-sheet-eyebrow { display:inline-flex; gap:8px; align-items:center; font-size:10px; font-weight:850; letter-spacing:.11em; color:var(--tr-accent-strong); }
+.trobos-sheet-top h2,.trobos-search-copy h2 {
+  margin-top:7px; font-size:23px; font-weight:860; letter-spacing:-.05em; line-height:1.1;
+}
+.trobos-sheet-top h2 em { font-style:normal; color:var(--tr-accent-strong); }
+.trobos-sheet-top p,.trobos-search-copy p { margin-top:8px; font-size:12px; line-height:1.5; color:var(--tr-muted); }
+.trobos-stage-icon { display:grid; place-items:center; width:44px; height:44px; border-radius:15px; color:var(--tr-accent-strong); background:rgba(194,118,81,.1); flex:none; }
+.trobos-journey-rows { display:flex; flex-direction:column; gap:10px; margin-top:20px; }
+.trobos-journey-row { display:flex; align-items:center; gap:12px; border:1px solid var(--tr-line); padding:13px; border-radius:17px; background:var(--tr-raised); min-width:0; }
+.trobos-journey-symbol { width:44px; height:44px; flex:none; display:grid; place-items:center; border-radius:14px; }
+.trobos-journey-symbol.sky { background:rgba(54,126,171,.13); color:#367EAB; }
+.trobos-journey-symbol.copper { background:rgba(194,118,81,.13); color:var(--tr-accent-strong); }
+.trobos-journey-info { flex:1; min-width:0; }
+.trobos-journey-title { display:flex; justify-content:space-between; align-items:center; gap:7px; }
+.trobos-journey-title strong { font-size:12px; font-weight:800; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.trobos-journey-title>span { font-size:11px; font-weight:800; color:var(--tr-accent); }
+.trobos-journey-info p { font-size:11px; margin:3px 0 9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--tr-muted); }
+.trobos-journey-meta { display:flex; align-items:center; gap:8px; justify-content:space-between; border-top:1px solid var(--tr-line); margin-top:14px; padding-top:12px; }
+.trobos-journey-meta>span { display:flex; gap:6px; align-items:center; font-size:10px; color:var(--tr-muted); font-weight:650; }
+.trobos-stage-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:14px; }
+.trobos-stage-actions>a,.trobos-stage-actions>button { min-width:0; display:flex; align-items:center; justify-content:center; gap:5px; padding:11px 6px; border:1px solid var(--tr-line); border-radius:12px; color:var(--tr-ink); background:var(--tr-raised); font-size:10px; font-weight:750; }
+.trobos-stage-actions>a:hover,.trobos-stage-actions>button:hover { border-color:var(--tr-accent); }
+.trobos-stage-continue { display:flex; align-items:center; justify-content:center; gap:9px; margin-top:10px; width:100%; border-radius:13px; border:1px solid var(--tr-line); padding:12px; color:var(--tr-ink); font-size:12px; font-weight:800; }
+.trobos-stage-notice { margin-top:12px; background:var(--tr-raised); border-radius:10px; padding:10px 12px; font-size:11px; color:var(--tr-muted); }
+.trobos-journey-card>.trobos-primary-action { margin-top:15px; }
+.trobos-search-visual { position:relative; display:grid; place-items:center; height:154px; overflow:hidden; }
+.trobos-radar-center { width:61px; height:61px; display:grid; place-items:center; background:var(--tr-accent-strong); color:white; border-radius:21px; z-index:2; box-shadow:0 12px 24px rgba(194,118,81,.22); }
+.trobos-radar-ring { width:125px; height:125px; position:absolute; border:1px solid rgba(194,118,81,.28); border-radius:50%; animation:tr-radar 2.8s infinite; }
+.trobos-radar-ring.two { width:185px; height:185px; animation-delay:.65s; }
+@keyframes tr-radar { 50% { opacity:.4; transform:scale(1.13) } }
+.trobos-search-bike,.trobos-search-truck { position:absolute; z-index:3; display:grid; place-items:center; border:1px solid var(--tr-line); border-radius:12px; background:var(--tr-surface); color:var(--tr-accent); padding:9px; box-shadow:var(--tr-shadow); }
+.trobos-search-bike { left:13%; top:12%; }
+.trobos-search-truck { right:13%; bottom:13%; }
+.trobos-search-copy { text-align:center; }
+.trobos-search-copy p { max-width:300px; margin:9px auto 0; }
+.trobos-search-loader { display:flex; justify-content:center; gap:6px; margin:17px auto; }
+.trobos-search-loader i { width:22px; height:4px; border-radius:12px; background:var(--tr-line); animation:tr-scan 1.5s infinite; }
+.trobos-search-loader i:nth-child(2) { animation-delay:.2s; }
+.trobos-search-loader i:nth-child(3) { animation-delay:.4s; }
+@keyframes tr-scan { 50% { background:var(--tr-accent); transform:scaleX(1.3); } }
+.trobos-cancel-search { display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid var(--tr-line); border-radius:13px; width:100%; padding:12px; color:var(--tr-muted); font-weight:750; font-size:12px; margin-top:12px; }
+@media (max-width: 767px) {
+  .trobos-journey-card { max-height:56dvh; border-radius:23px; padding:16px; }
+  .trobos-journey-rows { margin-top:13px; }
+  .trobos-sheet-top h2 { font-size:20px; }
+}
+@media (min-width:768px) {
+  .trobos-sheet-handle { display:none; }
+  .trobos-journey-card { border-radius:25px; max-height:calc(100dvh - 80px); padding:24px 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trobos-radar-ring,.trobos-search-loader i { animation:none; }
+}
