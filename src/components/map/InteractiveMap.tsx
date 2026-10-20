@@ -448,7 +448,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       <div className="absolute z-10 left-4 bottom-[min(22rem,45%)] lg:bottom-5 pointer-events-none max-w-[260px]">
         <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/90 dark:bg-[#192633]/95 text-[#334251] dark:text-[#E5EDF2] text-[11px] font-semibold shadow-lg backdrop-blur-xl border border-white/65 dark:border-white/10">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4C9B81]"/>
-          {engine === "google" ? "Google Maps" : "OpenStreetMap"} · {routeMode === "roads" ? "Rute jalan demo" : "Rute ilustrasi"}
+          {engine === "google" ? "Google Maps" : "OpenStreetMap"} · {routeMode === "roads" ? (engine === "google" ? "Routes API" : "OSRM demo") : "Rute ilustrasi"}
         </span>
         {message && <p role="status" className="mt-2 rounded-xl px-3 py-2 bg-white/95 dark:bg-[#192633]/95 text-xs text-slate-700 dark:text-slate-200">{message}</p>}
       </div>

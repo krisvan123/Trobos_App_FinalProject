@@ -607,10 +607,11 @@ export const useTrobosStore = create<TrobosStore>()(
         let carEta = baseTrip.carEtaMinutes;
 
         if (targetStatus === "TRIP_STARTED") {
-          userProg = 45;
-          carProg = 25;
-          userEta = 11;
-          carEta = 24;
+          // One-tap preview animates both units from the start of the route.
+          userProg = 0;
+          carProg = 0;
+          userEta = 2;
+          carEta = 3;
         } else if (targetStatus === "USER_ARRIVED") {
           userProg = 100;
           carProg = 65;
