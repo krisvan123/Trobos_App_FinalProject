@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     // Never trust a client-submitted workshop for the saved demo estimate.
     // Rescue goes to the nearest item in the server-owned example list.
     const carDestination = trip.serviceType === "MECHANIC"
-      ? point(nearestDemoWorkshop(destination, WORKSHOP_DESTINATIONS) || WORKSHOP_DESTINATIONS[0])
+      ? point(nearestDemoWorkshop({ ...destination, address: "" }, WORKSHOP_DESTINATIONS) || WORKSHOP_DESTINATIONS[0])
       : destination;
     const fare = calculateDemoFare({
       serviceType: trip.serviceType,
