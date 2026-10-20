@@ -43,6 +43,7 @@ When the key is absent or rejected, the app displays OpenStreetMap as an actual 
 3. Add both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the deployment (also to `.env.local` locally).
 4. Restart/redeploy. The login/register pages switch from demo-only mode to Supabase Auth.
 5. Test registration, email confirmation where required, login, recording a demo request and logout.
+6. In Supabase Auth URL Configuration, add `https://YOUR-HOST/reset-password` (and the local equivalent) to the redirect allow-list to enable email password recovery.
 
 The Next.js `/api/auth` handler sets HttpOnly SameSite cookies and verifies Supabase sessions. The `/api/trips` handler stores *demo request records* in a Supabase Postgres table protected by Row Level Security; only the authenticated user may read/write their records. Server/API credentials are not checked into version control. Never put a service-role key in a `NEXT_PUBLIC_` variable.
 

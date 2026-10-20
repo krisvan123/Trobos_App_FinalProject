@@ -35,14 +35,15 @@ export async function POST(request: NextRequest) {
     return response;
   }
   if (input.action === "recover") {
-    if (typeof input.email !== "string" || !/^\\S+@\\S+\\.\\S+$/.test(input.email)) {
+    if (typeof input.email !== "string" || !/^\S+@\S+\.\S+$/.test(input.email)) {
       return NextResponse.json({ error: "Email tidak valid" }, { status: 400 });
     }
     try {
       const redirect = encodeURIComponent(request.nextUrl.origin + "/reset-password");
-      await supabaseRequest("/auth/v1/recover?redirect_to=" + redirect, {
+      const upstream = await supabaseRequest("/auth/v1/recover?redirect_to=" + redirect, {
         method: "POST", body: JSON.stringify({ email: input.email }),
       });
+      if (!upstream.ok) return NextResponse.json({ error: "Penyedia email pemulihan menolak permintaan" }, { status: 502 });
       // Do not reveal whether an account exists.
       return NextResponse.json({ ok: true });
     } catch {

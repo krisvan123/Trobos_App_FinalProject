@@ -201,15 +201,24 @@ export const useTrobosStore = create<TrobosStore>()(
       },
 
       logout: () => {
+        get().stopAutoSimulation();
         if (typeof window !== "undefined") {
-          try {
-            localStorage.removeItem("trobos_app_storage");
-          } catch {}
+          try { localStorage.removeItem("trobos_app_storage"); } catch {}
         }
+        // Do not retain the previous user's private state in a shared browser.
         set({
           isAuthenticated: false,
           currentTrip: null,
+          user: MOCK_USER,
+          vehicles: MOCK_VEHICLES,
+          activeVehicleId: MOCK_VEHICLES[0].id,
+          pickupLocation: MOCK_LOCATIONS.current,
+          tripHistory: [],
+          chatMessages: [],
+          notifications: [],
           isDemoRunning: false,
+          damagePhotoUrl: null,
+          damagePhotoNote: "",
         });
       },
 
