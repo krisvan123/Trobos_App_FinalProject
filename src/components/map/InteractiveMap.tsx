@@ -5,6 +5,7 @@ import { Crosshair, Layers3, MapPin, Navigation2, Route } from "lucide-react";
 import { useTrobosStore } from "@/store/useTrobosStore";
 import type { LocationPoint, TripStatus } from "@/types/trobos";
 import { MOCK_LOCATIONS } from "@/lib/mockData";
+import { vehicleSvg, waypointSvg, routeBearing, type MovingVehicle, type Waypoint } from "@/lib/mapVehicleIcons";
 
 interface InteractiveMapProps {
   status?: TripStatus;
@@ -16,6 +17,7 @@ interface InteractiveMapProps {
   originName?: string;
   destinationName?: string;
   className?: string;
+  passengerKind?: "bike" | "car";
 }
 
 type Position = { lat: number; lng: number };
@@ -97,6 +99,30 @@ function interpolate(points: Position[], percent: number): Position {
   }
   return points[points.length - 1];
 }
+function setVehicleHeading(marker: any, kind: MovingVehicle, bearing: number, system: MapSystem) {
+  if (!marker) return;
+  // SVG vehicles face north at zero degrees. Rotate their inner graphics only
+  // so the marker badge stays correctly anchored on the road.
+  if (system === "google") {
+    const heading = Math.round(bearing / 6) * 6;
+    if (marker.__trobosBearing === heading) return;
+    marker.__trobosBearing = heading;
+    const maps = (window as MapGlobal).google?.maps;
+    if (maps) marker.setIcon(googleSvgIcon(maps, vehicleSvg(kind, heading), 54));
+  } else {
+    const rotator = marker.getElement?.()?.querySelector?.("[data-vehicle-heading]") as SVGGElement | null;
+    if (rotator) rotator.setAttribute("transform", "rotate(" + Math.round(bearing) + " 32 32)");
+  }
+}
+function moveVehicle(marker: any, route: Position[], progress: number, kind: MovingVehicle, system: MapSystem) {
+  if (!marker || !route.length) return;
+  const position = interpolate(route, progress);
+  const toward = interpolate(route, Math.min(100, progress + 0.55));
+  const behind = interpolate(route, Math.max(0, progress - 0.55));
+  if (system === "google") marker.setPosition(position);
+  else marker.setLatLng([position.lat, position.lng]);
+  setVehicleHeading(marker, kind, routeBearing(behind, toward), system);
+}
 function guidePath(a: Position, b: Position): Position[] {
   // Offline illustration only: Google Directions replaces this with road geometry when configured.
   const midLat = a.lat + (b.lat - a.lat) * 0.44;
@@ -107,22 +133,18 @@ function guidePath(a: Position, b: Position): Position[] {
 function demoApproach(origin: Position): Position[] {
   return guidePath({ lat: origin.lat + 0.009, lng: origin.lng + 0.008 }, origin);
 }
-function markerMarkup(icon: string, variant: string) {
-  return '<div class="trobos-map-pin ' + variant + '"><span>' + icon + '</span></div>';
+function googleSvgIcon(maps: any, svg: string, size: number) {
+  return {
+    url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg),
+    scaledSize: new maps.Size(size,size),
+    anchor: new maps.Point(size/2,size/2),
+  };
 }
-function createGoogleMarker(maps: any, map: any, point: Position, title: string, html: string) {
-  const icon = html.includes("bike") ? "🛵" : html.includes("truck") ? "🚚" : html.includes("passenger") ? "📍" : "●";
+function createGoogleMarker(maps: any, map: any, point: Position, title: string, kind: Waypoint | MovingVehicle) {
+  const moving = kind === "bike" || kind === "car" || kind === "tow";
   return new maps.Marker({
-    map, title, position: point,
-    icon: {
-      url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="58" height="58"><rect x="2" y="2" width="54" height="54" rx="19" fill="' +
-        (html.includes("truck") ? TOWING : html.includes("bike") ? PASSENGER : "#172534") +
-        '" stroke="white" stroke-width="3"/><text x="29" y="38" text-anchor="middle" font-size="27">' + icon + '</text></svg>'
-      ),
-      scaledSize: new maps.Size(46, 46),
-      anchor: new maps.Point(23, 23),
-    },
+    map, title, position: point, zIndex: moving ? 30 : 10,
+    icon: googleSvgIcon(maps, moving ? vehicleSvg(kind) : waypointSvg(kind), moving ? 54 : 48),
   });
 }
 function googlePath(map: any, maps: any, coords: Position[], color: string) {
@@ -193,6 +215,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   passengerDestination = MOCK_LOCATIONS.destinations[0],
   carDestination = MOCK_LOCATIONS.workshops[0],
   className = "",
+  passengerKind = "bike",
 }) => {
   const theme = useTrobosStore(s => s.theme);
   const setPickupLocation = useTrobosStore(s => s.setPickupLocation);
@@ -267,9 +290,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           mapRef.current = map;
           markersRef.current.pickup = createGoogleMarker(maps, map, originPos, "Titik bantuan", "pickup");
           markersRef.current.destination = createGoogleMarker(maps, map, passengerPos, "Tujuan penumpang", "passenger");
-          markersRef.current.workshop = createGoogleMarker(maps, map, carPos, "Tujuan mobil", "truck");
-          markersRef.current.rider = createGoogleMarker(maps, map, originPos, "Motor penjemput simulasi", "bike");
-          markersRef.current.towing = createGoogleMarker(maps, map, originPos, "Towing simulasi", "truck");
+          markersRef.current.workshop = createGoogleMarker(maps, map, carPos, "Tujuan mobil", "workshop");
+          markersRef.current.rider = createGoogleMarker(maps, map, originPos, "Armada penumpang simulasi", passengerKind);
+          markersRef.current.towing = createGoogleMarker(maps, map, originPos, "Towing simulasi", "tow");
           const resolveRoad = (end: Position) => routeFromGoogle(originPos, end).catch(() => guidePath(originPos, end));
           const [passengerRoute, towingRoute, approachRoute] = await Promise.all([
             resolveRoad(passengerPos),
@@ -318,15 +341,20 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               setMessage("Gaya peta CARTO tidak tersedia. Menggunakan OpenStreetMap sebagai cadangan.");
             });
           }
-          const icon = (symbol: string, type: string) => L.divIcon({
-            html: markerMarkup(symbol, type), className: "trobos-marker-shell",
-            iconSize: [54, 54], iconAnchor: [27, 27],
-          });
-          markersRef.current.pickup = L.marker([origin.lat, origin.lng], { icon: icon("●", "pickup") }).addTo(map);
-          markersRef.current.destination = L.marker([passengerDestination.lat, passengerDestination.lng], { icon: icon("◆", "passenger") }).addTo(map);
-          markersRef.current.workshop = L.marker([carDestination.lat, carDestination.lng], { icon: icon("◆", "truck") }).addTo(map);
-          markersRef.current.rider = L.marker([origin.lat, origin.lng], { icon: icon("🛵", "bike") });
-          markersRef.current.towing = L.marker([origin.lat, origin.lng], { icon: icon("🚚", "truck") });
+          const icon = (kind: Waypoint | MovingVehicle) => {
+            const moving = kind === "bike" || kind === "car" || kind === "tow";
+            const size = moving ? 54 : 48;
+            return L.divIcon({
+              html: moving ? vehicleSvg(kind) : waypointSvg(kind),
+              className: "trobos-marker-shell tr-vector-marker",
+              iconSize: [size,size], iconAnchor: [size/2,size/2],
+            });
+          };
+          markersRef.current.pickup = L.marker([origin.lat, origin.lng], { icon: icon("pickup"), zIndexOffset: 100 }).addTo(map);
+          markersRef.current.destination = L.marker([passengerDestination.lat, passengerDestination.lng], { icon: icon("passenger"), zIndexOffset: 100 }).addTo(map);
+          markersRef.current.workshop = L.marker([carDestination.lat, carDestination.lng], { icon: icon("workshop"), zIndexOffset: 100 }).addTo(map);
+          markersRef.current.rider = L.marker([origin.lat, origin.lng], { icon: icon(passengerKind), zIndexOffset: 120 });
+          markersRef.current.towing = L.marker([origin.lat, origin.lng], { icon: icon("tow"), zIndexOffset: 125 });
           let passengerRoute = guidePath(originPos, passengerPos);
           let towingRoute = guidePath(originPos, carPos);
           const approachRoute = demoApproach(originPos);
@@ -365,7 +393,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
     void setup();
     return () => { cancelled = true; cleanup(); };
-  }, [google, dark, origin.lat, origin.lng, passengerDestination.lat, passengerDestination.lng, carDestination.lat, carDestination.lng]);
+  }, [google, dark, origin.lat, origin.lng, passengerDestination.lat, passengerDestination.lng, carDestination.lat, carDestination.lng, passengerKind]);
 
   useEffect(() => {
     if (!engine || !mapRef.current) return;
@@ -377,18 +405,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       else if (visible) { if (!mapRef.current?.hasLayer(marker)) marker.addTo(mapRef.current); }
       else if (mapRef.current?.hasLayer(marker)) mapRef.current.removeLayer(marker);
     };
-    const point = (marker: any, coord: Position) => {
-      if (!marker) return;
-      if (engine === "google") marker.setPosition(coord);
-      else marker.setLatLng([coord.lat, coord.lng]);
-    };
     show(markers.rider, approaching || tripRunning);
     show(markers.towing, tripRunning);
-    point(markers.rider, approaching
-      ? interpolate(route.approach, 0)
-      : interpolate(route.passenger, userProgress));
-    point(markers.towing, interpolate(route.towing, carProgress));
-  }, [engine, approaching, tripRunning, userProgress, carProgress]);
+    moveVehicle(markers.rider, approaching ? route.approach : route.passenger,
+      approaching ? 0 : userProgress, passengerKind, engine);
+    moveVehicle(markers.towing, route.towing, carProgress, "tow", engine);
+  }, [engine, approaching, tripRunning, userProgress, carProgress, passengerKind]);
 
   useEffect(() => {
     if (!engine || (!tripRunning && !approaching)) return;
@@ -406,8 +428,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         const marker = markersRef.current.rider;
         if (marker) {
           const pos = interpolate(routesRef.current.approach, approachPercent);
-          if (engineRef.current === "google") marker.setPosition(pos);
-          else marker.setLatLng([pos.lat, pos.lng]);
+          if (engineRef.current) moveVehicle(marker, routesRef.current.approach, approachPercent, passengerKind, engineRef.current);
           if (followRef.current && mapRef.current && now - lastPan > 1800) {
             mapRef.current.panTo(engineRef.current === "google" ? pos : [pos.lat,pos.lng]);
             lastPan = now;
@@ -435,7 +456,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return () => cancelAnimationFrame(frame);
     // Current progress is sampled only when the trip phase changes, not on every animation tick.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [engine, status, setArrived, updateLiveProgress, userArrivedAtDest, carArrivedAtDest]);
+  }, [engine, status, setArrived, updateLiveProgress, userArrivedAtDest, carArrivedAtDest, passengerKind]);
 
   useEffect(() => {
     if (!engine || !mapRef.current) return;

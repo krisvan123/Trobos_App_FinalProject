@@ -564,3 +564,20 @@ body {
   color: #c9d6df;
 }
 .dark .trobos-live-map .leaflet-control-attribution a { color: #d7e2e9; }
+
+/* Vector map vehicles: designed silhouettes, never emoji/stickers. */
+.trobos-live-map .tr-vector-marker {
+  background:transparent;
+  border:0;
+  filter:drop-shadow(0 9px 8px rgba(5,20,32,.22));
+}
+.trobos-live-map .tr-vector-marker svg {
+  display:block;
+  width:100%;
+  height:100%;
+  overflow:visible;
+}
+.trobos-live-map .tr-vector-marker [data-vehicle-heading] {
+  transform-origin: 32px 32px;
+  transition: transform .24s ease-out;
+}
