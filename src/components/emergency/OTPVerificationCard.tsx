@@ -33,7 +33,7 @@ export const OTPVerificationCard: React.FC = () => {
         {/* Clean, High-Legibility OTP Box */}
         <div className="my-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 px-6 text-center">
           <div className="text-[10px] text-slate-400 dark:text-slate-400 font-bold uppercase tracking-wider mb-1">
-            Kode PIN Keamanan Trobos
+            PIN Demo Serah Terima
           </div>
           <div className="text-4xl font-black tracking-[0.3em] text-[#FF4D00] font-mono">
             {currentTrip.otpCode || "4821"}
@@ -43,7 +43,7 @@ export const OTPVerificationCard: React.FC = () => {
         {/* Primary CTA */}
         <button
           type="button"
-          onClick={() => verifyOtp("4821")}
+          onClick={() => verifyOtp(currentTrip.otpCode)}
           className="w-full py-3.5 rounded-xl bg-[#FF4D00] hover:bg-[#E64500] active:scale-[0.99] text-white font-black text-xs tracking-wide shadow-sm transition flex items-center justify-center gap-2"
         >
           <span>Lanjut ke Inspeksi Serah Terima Mobil</span>

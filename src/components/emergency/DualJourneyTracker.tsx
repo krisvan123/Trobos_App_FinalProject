@@ -26,8 +26,8 @@ export const DualJourneyTracker: React.FC = () => {
 
   const transport = currentTrip.passengerTransport;
   const towing = currentTrip.towingUnit;
-  const userPercent = currentTrip.userProgressPercent || 45;
-  const carPercent = currentTrip.carProgressPercent || 25;
+  const userPercent = currentTrip.userProgressPercent ?? 0;
+  const carPercent = currentTrip.carProgressPercent ?? 0;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -54,7 +54,7 @@ export const DualJourneyTracker: React.FC = () => {
               Penyelamatan Trobos Berjalan
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Penumpang & armada dipantau secara simultan
+              Simulasi progres dua kendaraan, bukan GPS live
             </p>
           </div>
           <div className="text-right">
@@ -188,7 +188,7 @@ export const DualJourneyTracker: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => showToast("Tautan live tracking Trobos disalin ke clipboard")}
+            onClick={() => showToast("Berbagi tracking belum tersedia dalam mode demo")}
             className="p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium flex flex-col items-center gap-1 transition"
           >
             <Share2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
@@ -196,7 +196,7 @@ export const DualJourneyTracker: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => showToast("Pusat Tanggap Darurat Trobos Siaga 24 Jam")}
+            onClick={() => showToast("Mode demo tidak mengirim SOS. Hubungi layanan darurat resmi jika membutuhkan bantuan.")}
             className="p-2 sm:p-2.5 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 text-xs font-medium flex flex-col items-center gap-1 transition"
           >
             <ShieldAlert className="w-4 h-4 text-red-600 dark:text-red-400" />

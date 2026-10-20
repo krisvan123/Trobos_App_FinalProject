@@ -43,11 +43,11 @@ export default function DriverDashboardPage() {
   const [pinError, setPinError] = useState(false);
   const [pinVerified, setPinVerified] = useState(false);
   const [checklist, setChecklist] = useState({
-    front: true,
-    rear: true,
-    sides: true,
-    interior: true,
-    keyHandover: true,
+    front: false,
+    rear: false,
+    sides: false,
+    interior: false,
+    keyHandover: false,
   });
 
   // Communication modals
@@ -88,7 +88,7 @@ export default function DriverDashboardPage() {
   };
 
   const handleVerifyPin = () => {
-    if (pinInput === "4821" || pinInput === "1234" || pinInput.length === 4) {
+    if (pinInput === "4821") {
       setPinVerified(true);
       setPinError(false);
     } else {
@@ -418,7 +418,7 @@ export default function DriverDashboardPage() {
 
             <button
               onClick={handleStartTransit}
-              disabled={!pinVerified}
+              disabled={!pinVerified || !Object.values(checklist).every(Boolean)}
               className={`w-full py-3.5 rounded-2xl font-bold text-xs shadow-sm transition ${
                 pinVerified
                   ? "bg-[#FF4D00] hover:bg-[#E64400] text-white active:scale-[0.99]"

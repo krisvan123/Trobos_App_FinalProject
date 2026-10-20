@@ -25,6 +25,7 @@ export const VehicleHandoverModal: React.FC = () => {
   const vehicle = currentTrip.vehicle;
   const towing = currentTrip.towingUnit;
   const problem = currentTrip.problem;
+  const canHandover = handover.front && handover.rear && handover.left && handover.right && handover.interior && handover.problemConfirmed;
 
   const points = [
     { key: "front" as const, label: "Bodi Depan" },
@@ -134,16 +135,17 @@ export const VehicleHandoverModal: React.FC = () => {
         {/* Safety Guarantee */}
         <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-          <span>Polis asuransi all-risk Rp 1 Miliar aktif begitu mobil diserahkan ke tim Trobos.</span>
+          <span>Simulasi inspeksi: belum terhubung ke operator maupun polis asuransi sungguhan.</span>
         </div>
 
         {/* Primary CTA */}
         <button
           type="button"
           onClick={confirmVehicleHandover}
+          disabled={!canHandover}
           className="w-full py-3.5 rounded-xl bg-[#FF4D00] hover:bg-[#E64500] text-white font-black text-xs tracking-wide shadow-sm transition active:scale-[0.99] flex items-center justify-center gap-2"
         >
-          <span>Mulai Evakuasi & Berangkat</span>
+          <span>{canHandover ? "Mulai Evakuasi & Berangkat" : "Lengkapi inspeksi untuk melanjutkan"}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
