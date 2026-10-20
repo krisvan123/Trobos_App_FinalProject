@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTrobosStore } from "@/store/useTrobosStore";
 import { TripHistoryItem } from "@/types/trobos";
 import { formatRupiah, formatDateIndo, formatDistance } from "@/lib/formatters";
@@ -17,8 +17,27 @@ import {
   Wrench,
 } from "lucide-react";
 
+type ArchivedTrip = { trip_id: string; created_at: string; trip_data: {
+  serviceType?: "MECHANIC" | "TANDEM"; destination?: { name?: string }; carDestination?: { name?: string }; fare?: { totalFare?: number };
+} };
+const remoteEnabled = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
 export default function TripsPage() {
   const tripHistory = useTrobosStore((s) => s.tripHistory);
+  const [archived, setArchived] = useState<ArchivedTrip[]>([]);
+  const [archiveError, setArchiveError] = useState("");
+  useEffect(() => {
+    if (!remoteEnabled) return;
+    let live = true;
+    fetch("/api/trips", { cache: "no-store" })
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.error || "Gagal memuat arsip");
+        if (live) setArchived(Array.isArray(body.trips) ? body.trips : []);
+      })
+      .catch((error) => { if (live) setArchiveError(error instanceof Error ? error.message : "Gagal memuat arsip"); });
+    return () => { live = false; };
+  }, []);
   const [selectedTrip, setSelectedTrip] = useState<TripHistoryItem | null>(null);
   const [filter, setFilter] = useState<"All" | "Completed" | "Cancelled">("All");
 
@@ -58,6 +77,22 @@ export default function TripsPage() {
           ))}
         </div>
       </div>
+
+      {remoteEnabled && (
+        <section className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+          <h2 className="text-base font-extrabold">Arsip Permintaan Demo di Server</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Hanya catatan yang tersimpan di akun Anda. Bukan pesanan towing sungguhan.</p>
+          {archiveError && <p role="alert" className="text-xs text-red-600">{archiveError}</p>}
+          {archived.length === 0 && !archiveError && <p className="text-sm text-slate-500">Belum ada permintaan demo yang tersimpan.</p>}
+          {archived.map((item) => (
+            <div key={item.trip_id} className="rounded-xl p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <div className="font-bold text-sm text-slate-900 dark:text-white">{item.trip_id} · {item.trip_data.serviceType === "MECHANIC" ? "Derek" : "Tandem"}</div>
+              <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">Tujuan: {item.trip_data.destination?.name || "Tidak tersedia"}</div>
+              <div className="text-xs text-slate-500 mt-1">{new Date(item.created_at).toLocaleString("id-ID")} · Mode simulasi</div>
+            </div>
+          ))}
+        </section>
+      )}
 
       {/* Trips List */}
       {filteredTrips.length === 0 ? (
