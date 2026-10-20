@@ -95,37 +95,37 @@ export default function HelpCenterPage() {
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
           <a
-            href="https://wa.me/6281234567890"
+            href="https://www.google.com/search?q=layanan+derek+terdekat"
             target="_blank"
             rel="noreferrer"
             className="p-3 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2.5 text-slate-800 dark:text-slate-200 font-medium"
           >
             <MessageCircle className="w-5 h-5 text-emerald-600 shrink-0" />
             <div>
-              <div className="font-bold">WhatsApp Care</div>
-              <div className="text-[10px] text-slate-400">Respon cepat</div>
+              <div className="font-bold">Cari Penyedia Derek</div>
+              <div className="text-[10px] text-slate-400">Cari operator yang tersedia</div>
             </div>
           </a>
 
           <a
-            href="tel:021500888"
+            href="tel:112"
             className="p-3 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2.5 text-slate-800 dark:text-slate-200 font-medium"
           >
             <Phone className="w-5 h-5 text-[#FF4D00] shrink-0" />
             <div>
-              <div className="font-bold">Hotline 24 Jam</div>
-              <div className="text-[10px] text-slate-400">021-500-888</div>
+              <div className="font-bold">Nomor Darurat Umum</div>
+              <div className="text-[10px] text-slate-400">112</div>
             </div>
           </a>
 
           <a
-            href="mailto:support@trobos.id"
+            href="mailto:example@example.invalid"
             className="p-3 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2.5 text-slate-800 dark:text-slate-200 font-medium"
           >
             <Mail className="w-5 h-5 text-sky-600 shrink-0" />
             <div>
-              <div className="font-bold">Email Resmi</div>
-              <div className="text-[10px] text-slate-400">support@trobos.id</div>
+              <div className="font-bold">Email Demo — Belum Aktif</div>
+              <div className="text-[10px] text-slate-400">Belum Tersedia</div>
             </div>
           </a>
         </div>

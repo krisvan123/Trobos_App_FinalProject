@@ -23,7 +23,7 @@ export const EmergencyButton: React.FC<EmergencyButtonProps> = ({
         type="button"
         onClick={onClick}
         disabled={disabled}
-        aria-label="Minta Bantuan - Layanan Evakuasi Mobil Mogok"
+        aria-label="Simulasikan permintaan bantuan evakuasi"
         className={cn(
           "w-full bg-[#FF4D00] hover:bg-[#E64500] active:scale-[0.99] text-white rounded-2xl shadow-elevated transition-all duration-150 flex items-center justify-between",
           compact ? "p-3.5" : "p-4 sm:p-5"
@@ -46,7 +46,7 @@ export const EmergencyButton: React.FC<EmergencyButtonProps> = ({
         <div className="hidden sm:flex items-center gap-2.5 pl-4 border-l border-white/20 text-right shrink-0">
           <div>
             <div className="text-[11px] text-white/80 font-medium">Towing & Armada Pengganti</div>
-            <div className="text-xs font-bold text-white">~3 mnt tiba</div>
+            <div className="text-xs font-bold text-white">Hanya Demo</div>
           </div>
           <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
             <ArrowRight className="w-4 h-4 text-white" />

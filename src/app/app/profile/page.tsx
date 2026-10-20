@@ -52,7 +52,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-black text-slate-900 dark:text-white truncate">{user.name}</h1>
             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-              <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Terverifikasi
+              <CheckCircle2 className="w-3 h-3 text-slate-400" /> Profil Demo
             </span>
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">{user.phone}</div>
