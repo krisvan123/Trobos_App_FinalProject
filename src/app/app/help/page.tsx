@@ -91,7 +91,7 @@ export default function HelpCenterPage() {
       {/* Direct Contact Channels */}
       <div className="pt-2">
         <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2.5">
-          Hubungi Layanan Pelanggan:
+          Bantuan & Informasi (Prototipe):
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
           <a
@@ -118,16 +118,16 @@ export default function HelpCenterPage() {
             </div>
           </a>
 
-          <a
-            href="mailto:example@example.invalid"
-            className="p-3 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2.5 text-slate-800 dark:text-slate-200 font-medium"
+          <div
+            aria-label="Alamat email TROBOS belum tersedia"
+            className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-800 flex items-center gap-2.5 text-slate-500 dark:text-slate-400"
           >
             <Mail className="w-5 h-5 text-sky-600 shrink-0" />
             <div>
               <div className="font-bold">Email Demo — Belum Aktif</div>
               <div className="text-[10px] text-slate-400">Belum Tersedia</div>
             </div>
-          </a>
+          </div>
         </div>
       </div>
     </div>
