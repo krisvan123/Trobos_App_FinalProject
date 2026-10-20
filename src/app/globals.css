@@ -948,3 +948,18 @@ body {
   box-shadow:inset 0 0 0 1px rgba(194,118,81,.14);
 }
 .trobos-focus-hint { margin-top:11px; font-size:11px; line-height:1.5; color:var(--tr-muted); }
+
+/* Booking form: first choose a pickup, then a destination and workshop preview. */
+.trobos-form-location-select { display:flex; flex-direction:column; gap:5px; padding:0 0 7px 26px; width:100%; }
+.trobos-form-location-select>label { font-size:11px; font-weight:750; color:var(--tr-muted); }
+.trobos-form-location-select>select {
+  width:100%; border:1px solid var(--tr-line); background:var(--tr-surface); color:var(--tr-ink);
+  font-size:12px; font-weight:750; padding:11px 13px; border-radius:12px;
+}
+.tr-recommended-workshop { padding:16px; border-radius:18px; border:1px solid rgba(194,118,81,.35); background:rgba(194,118,81,.07); }
+.tr-workshop-top { display:flex; align-items:flex-start; gap:11px; }
+.tr-workshop-top>svg { flex:none; color:var(--tr-accent); }
+.tr-workshop-top>div { min-width:0; }
+.tr-workshop-top span { display:block; color:var(--tr-accent-strong); font-size:10px; font-weight:830; letter-spacing:.07em; }
+.tr-workshop-top strong { display:block; font-size:13px; font-weight:820; margin-top:6px; }
+.tr-recommended-workshop p { font-size:11px; color:var(--tr-muted); line-height:1.5; margin-top:10px; }

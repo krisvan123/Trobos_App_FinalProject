@@ -5,12 +5,15 @@ import { BottomSheet } from "@/components/common/BottomSheet";
 import { useTrobosStore } from "@/store/useTrobosStore";
 import {
   MOCK_LOCATIONS,
+  DEMO_PICKUP_POINTS,
+  WORKSHOP_DESTINATIONS,
   BREAKDOWN_PROBLEMS,
   getPassengerTransportOption,
 } from "@/lib/mockData";
 import { BreakdownProblemId, PaymentMethod, ServiceType } from "@/types/trobos";
 import { formatRupiah } from "@/lib/formatters";
 import { calculateDemoFare } from "@/lib/pricing";
+import { rankDemoWorkshops } from "@/lib/workshopRecommendation";
 import {
   MapPin,
   Car,
@@ -51,12 +54,9 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
 }) => {
   const currentTrip = useTrobosStore((s) => s.currentTrip);
   const pickupLocation = useTrobosStore((s) => s.pickupLocation);
+  const setPickupLocation = useTrobosStore((s) => s.setPickupLocation);
   const selectedDestination = useTrobosStore((s) => s.selectedDestination);
   const setSelectedDestination = useTrobosStore((s) => s.setSelectedDestination);
-  const selectedWorkshop = useTrobosStore((s) => s.selectedWorkshop);
-  const setSelectedWorkshop = useTrobosStore((s) => s.setSelectedWorkshop);
-  const carDestinationType = useTrobosStore((s) => s.carDestinationType);
-  const setCarDestinationType = useTrobosStore((s) => s.setCarDestinationType);
   const selectedProblemId = useTrobosStore((s) => s.selectedProblemId);
   const setSelectedProblemId = useTrobosStore((s) => s.setSelectedProblemId);
   const passengerCount = useTrobosStore((s) => s.passengerCount);
@@ -82,11 +82,13 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
     vehicles.find((v) => v.id === activeVehicleId) || vehicles[0];
 
   const passengerTransport = getPassengerTransportOption(passengerCount);
+  const rankedWorkshops = rankDemoWorkshops(selectedDestination, WORKSHOP_DESTINATIONS);
+  const recommendedWorkshop = rankedWorkshops[0]?.workshop || WORKSHOP_DESTINATIONS[0];
   const estimatedFare = calculateDemoFare({
     serviceType,
     origin: pickupLocation,
     passengerDestination: selectedDestination,
-    carDestination: serviceType === "MECHANIC" && carDestinationType === "WORKSHOP" ? selectedWorkshop : selectedDestination,
+    carDestination: serviceType === "MECHANIC" ? recommendedWorkshop : selectedDestination,
     passengerCount,
   });
 
@@ -460,6 +462,17 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
             </div>
           </div>
 
+          <div className="trobos-form-location-select">
+            <label htmlFor="tr-form-pickup">Pilih titik bantuan</label>
+            <select id="tr-form-pickup" value={DEMO_PICKUP_POINTS.some(p=>p.name===pickupLocation.name) ? pickupLocation.name : ""}
+              onChange={event=>{
+                const chosen=DEMO_PICKUP_POINTS.find(p=>p.name===event.target.value);
+                if(chosen)setPickupLocation(chosen);
+              }}>
+              {!DEMO_PICKUP_POINTS.some(p=>p.name===pickupLocation.name) && <option value="">Lokasi perangkat</option>}
+              {DEMO_PICKUP_POINTS.map(place=><option key={place.name} value={place.name}>{place.name}</option>)}
+            </select>
+          </div>
           {/* Destination */}
           <div className="flex items-start gap-3">
             <div className="mt-1">
@@ -514,31 +527,17 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
         </div>
 
         {serviceType === "MECHANIC" && (
-          <div className="p-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-3">
-            <h3 className="text-sm font-bold">Tujuan Mobil Mogok</h3>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button type="button" onClick={() => setCarDestinationType("WORKSHOP")}
-                className={carDestinationType === "WORKSHOP" ? "border-2 border-[#FF4D00] rounded-xl p-2 font-semibold" : "border border-slate-300 rounded-xl p-2"}>
-                Bengkel Contoh
-              </button>
-              <button type="button" onClick={() => setCarDestinationType("SAME_AS_PASSENGER")}
-                className={carDestinationType === "SAME_AS_PASSENGER" ? "border-2 border-[#FF4D00] rounded-xl p-2 font-semibold" : "border border-slate-300 rounded-xl p-2"}>
-                Sama dengan Penumpang
-              </button>
-            </div>
-            {carDestinationType === "WORKSHOP" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {MOCK_LOCATIONS.workshops.map((workshop) => (
-                  <button key={workshop.name} type="button" onClick={() => setSelectedWorkshop(workshop)}
-                    className={selectedWorkshop.name === workshop.name
-                      ? "rounded-xl border-2 border-[#FF4D00] bg-orange-50 dark:bg-slate-800 p-3 text-left text-xs font-semibold"
-                      : "rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-left text-xs"}>
-                    {workshop.name}
-                  </button>
-                ))}
+          <div className="tr-recommended-workshop">
+            <div className="tr-workshop-top">
+              <Wrench size={19}/>
+              <div>
+                <span>BENGKEL CONTOH TERDEKAT DARI TUJUAN PENUMPANG</span>
+                <strong>{recommendedWorkshop.name}</strong>
               </div>
-            )}
-            <p className="text-[11px] text-slate-500">Bengkel adalah contoh, belum ada kemitraan resmi yang diverifikasi.</p>
+            </div>
+            <p>± {rankedWorkshops[0]?.distanceKm.toFixed(1) ?? "—"} km jarak geografis dari
+              {selectedDestination.name}. Rekomendasi otomatis berubah ketika tujuan penumpang diganti.</p>
+            <p>Hanya perbandingan lokasi contoh. Bukan bengkel terverifikasi, bukan jarak jalan, dan belum diperiksa jam operasionalnya.</p>
           </div>
         )}
         {/* 6. Payment Method Selection (User testing request #12) */}
