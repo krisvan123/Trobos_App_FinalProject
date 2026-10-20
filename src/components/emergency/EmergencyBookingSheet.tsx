@@ -10,6 +10,7 @@ import {
 } from "@/lib/mockData";
 import { BreakdownProblemId, PaymentMethod, ServiceType } from "@/types/trobos";
 import { formatRupiah } from "@/lib/formatters";
+import { calculateDemoFare } from "@/lib/pricing";
 import {
   MapPin,
   Car,
@@ -81,6 +82,13 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
     vehicles.find((v) => v.id === activeVehicleId) || vehicles[0];
 
   const passengerTransport = getPassengerTransportOption(passengerCount);
+  const estimatedFare = calculateDemoFare({
+    serviceType,
+    origin: pickupLocation,
+    passengerDestination: selectedDestination,
+    carDestination: serviceType === "MECHANIC" && carDestinationType === "WORKSHOP" ? selectedWorkshop : selectedDestination,
+    passengerCount,
+  });
 
   const handleConfirm = async () => {
     if (submitting) return;
@@ -497,6 +505,34 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
           </div>
         </div>
 
+        {serviceType === "MECHANIC" && (
+          <div className="p-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-3">
+            <h3 className="text-sm font-bold">Tujuan Mobil Mogok</h3>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <button type="button" onClick={() => setCarDestinationType("WORKSHOP")}
+                className={carDestinationType === "WORKSHOP" ? "border-2 border-[#FF4D00] rounded-xl p-2 font-semibold" : "border border-slate-300 rounded-xl p-2"}>
+                Bengkel Contoh
+              </button>
+              <button type="button" onClick={() => setCarDestinationType("SAME_AS_PASSENGER")}
+                className={carDestinationType === "SAME_AS_PASSENGER" ? "border-2 border-[#FF4D00] rounded-xl p-2 font-semibold" : "border border-slate-300 rounded-xl p-2"}>
+                Sama dengan Penumpang
+              </button>
+            </div>
+            {carDestinationType === "WORKSHOP" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {MOCK_LOCATIONS.workshops.map((workshop) => (
+                  <button key={workshop.name} type="button" onClick={() => setSelectedWorkshop(workshop)}
+                    className={selectedWorkshop.name === workshop.name
+                      ? "rounded-xl border-2 border-[#FF4D00] bg-orange-50 dark:bg-slate-800 p-3 text-left text-xs font-semibold"
+                      : "rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-left text-xs"}>
+                    {workshop.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="text-[11px] text-slate-500">Bengkel adalah contoh, belum ada kemitraan resmi yang diverifikasi.</p>
+          </div>
+        )}
         {/* 6. Payment Method Selection (User testing request #12) */}
         <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 space-y-2">
           <div className="flex items-center justify-between">
@@ -542,10 +578,10 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                Total Biaya Layanan
+                Estimasi Biaya Demo
               </div>
               <div className="text-xl font-black text-slate-900 dark:text-white">
-                {formatRupiah(serviceType === "MECHANIC" ? 220000 : 89000)}
+                {formatRupiah(estimatedFare.totalFare)}
               </div>
             </div>
             <button
@@ -564,38 +600,38 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
                 <>
                   <div className="flex justify-between">
                     <span>Tarif Dasar Tandem</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">Rp 35.000</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{formatRupiah(estimatedFare.baseFare)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Layanan Penyelamatan (Rider + Driver)</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">Rp 30.000</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{formatRupiah(estimatedFare.emergencyService)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Jarak Tempuh (6.8 km)</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">Rp 14.000</span>
+                    <span>Jarak Perkiraan ({estimatedFare.distanceKm} km)</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{formatRupiah(estimatedFare.distanceFare)}</span>
                   </div>
                   <div className="flex justify-between text-orange-600 dark:text-orange-400 font-medium">
                     <span>Lonjakan Jam Sibuk / Kemacetan</span>
-                    <span>+Rp 10.000</span>
+                    <span>+{formatRupiah(estimatedFare.surgeFare)}</span>
                   </div>
                 </>
               ) : (
                 <>
                   <div className="flex justify-between">
                     <span>Evakuasi Derek Towing Flatbed</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">Rp 110.000</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{formatRupiah(estimatedFare.towingFare)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Armada Pengantar Penumpang ({passengerTransport.title})</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">Rp 45.000</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{formatRupiah(estimatedFare.baseFare)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Layanan Siaga & Inspeksi Bodi</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">Rp 45.000</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{formatRupiah(estimatedFare.emergencyService)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Jarak Tempuh (6.8 km)</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">Rp 20.000</span>
+                    <span>Jarak Perkiraan ({estimatedFare.distanceKm} km)</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{formatRupiah(estimatedFare.distanceFare)}</span>
                   </div>
                 </>
               )}
@@ -607,6 +643,7 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
           )}
         </div>
 
+        <p className="text-[11px] text-slate-500 dark:text-slate-400">Tarif dan ETA adalah ilustrasi dari perkiraan jarak geografis, bukan harga atau lalu lintas aktual. Tidak ada pembayaran dalam demo.</p>
         {/* 8. Action Buttons (DOMINANT CTA: MINTA BANTUAN) */}
         {submitError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs text-red-700">{submitError}</p>}
         <div className="pt-2 space-y-2">
