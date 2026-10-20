@@ -3,16 +3,15 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useTrobosStore } from "@/store/useTrobosStore";
-import { ArrowRight, Bike, CarFront, Check, CircleHelp, MessageCircle, Route, Share2, Truck, Users } from "lucide-react";
+import { Bike, CarFront, ChevronDown, Check, CircleHelp, MessageCircle, Route, Share2, Truck, Users } from "lucide-react";
 
 export function DualJourneyTracker() {
   const currentTrip = useTrobosStore(s => s.currentTrip);
-  const userArrivedAtDest = useTrobosStore(s => s.userArrivedAtDest);
-  const carArrivedAtDest = useTrobosStore(s => s.carArrivedAtDest);
   const setChatOpen = useTrobosStore(s => s.setChatOpen);
   const mapFocus = useTrobosStore(s => s.mapFocus);
   const setMapFocus = useTrobosStore(s => s.setMapFocus);
   const [notice, setNotice] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
   if (!currentTrip) return null;
   const p = Math.min(100, Math.max(0, currentTrip.userProgressPercent ?? 0));
   const c = Math.min(100, Math.max(0, currentTrip.carProgressPercent ?? 0));
@@ -27,8 +26,8 @@ export function DualJourneyTracker() {
         <div className="trobos-sheet-top">
           <div>
             <span className="trobos-sheet-eyebrow"><span className="trobos-status-dot"/> LIVE ANIMATION · DEMO</span>
-            <h2>Dua perjalanan.<br/><em>Satu tujuan.</em></h2>
-            <p>Amati penumpang dan kendaraan bergerak secara terpisah.</p>
+            <h2>Perjalanan berlangsung.</h2>
+            <p>Ketuk kendaraan untuk mengikuti posisinya di peta.</p>
           </div>
           <span className="trobos-stage-icon"><Route size={23}/></span>
         </div>
@@ -56,28 +55,26 @@ export function DualJourneyTracker() {
             </div>
           </button>
         </div>
-        <p className="trobos-focus-hint">Ketuk salah satu kendaraan untuk mengikuti pergerakannya di peta.</p>
         <div className="trobos-journey-meta">
           <span><Users size={15}/> {currentTrip.passengerCount} penumpang</span>
-          <span><Check size={15}/> PIN & inspeksi demo</span>
+          <span><Check size={15}/> Status demo</span>
         </div>
-        {notice && <p role="status" className="trobos-stage-notice">{notice}</p>}
-        <div className="trobos-stage-actions">
-          <button type="button" onClick={() => setChatOpen(true)}><MessageCircle size={17}/> Chat demo</button>
-          <button type="button" onClick={() => setNotice("Tautan live tracking belum tersedia: kendaraan di peta adalah animasi demo.")}><Share2 size={17}/> Bagikan</button>
-          <Link href="/app/help"><CircleHelp size={17}/> Bantuan</Link>
-        </div>
-        {currentTrip.status === "TRIP_STARTED" && (
-          <button type="button" onClick={userArrivedAtDest} className="trobos-stage-continue">
-            Tandai penumpang tiba <ArrowRight size={18}/>
-          </button>
+        <button type="button" className="tr-journey-expand" aria-expanded={detailsOpen}
+          onClick={()=>setDetailsOpen(open=>!open)}>
+          <span>{detailsOpen ? "Sembunyikan opsi" : "Chat, bantuan & info perjalanan"}</span>
+          <ChevronDown size={16} className={detailsOpen ? "rotate-180" : ""}/>
+        </button>
+        {detailsOpen && (
+          <div className="tr-journey-extra">
+            {notice && <p role="status" className="trobos-stage-notice">{notice}</p>}
+            <div className="trobos-stage-actions">
+              <button type="button" onClick={() => setChatOpen(true)}><MessageCircle size={17}/> Chat demo</button>
+              <button type="button" onClick={() => setNotice("Live tracking belum tersedia karena posisi kendaraan merupakan animasi demo.")}><Share2 size={17}/> Bagikan</button>
+              <Link href="/app/help"><CircleHelp size={17}/> Bantuan</Link>
+            </div>
+            <p className="trobos-legal-note">Progres bergerak otomatis dan tidak berasal dari GPS driver sungguhan. Tidak ada tahap yang perlu dipercepat secara manual.</p>
+          </div>
         )}
-        {currentTrip.status === "USER_ARRIVED" && (
-          <button type="button" onClick={carArrivedAtDest} className="trobos-stage-continue">
-            Tandai mobil tiba <ArrowRight size={18}/>
-          </button>
-        )}
-        <p className="trobos-legal-note">Peta dan progres bergerak otomatis untuk demonstrasi; tidak terhubung dengan driver sungguhan.</p>
       </section>
     </div>
   );

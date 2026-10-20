@@ -2,10 +2,12 @@
 
 import React, { useEffect } from "react";
 import { useTrobosStore } from "@/store/useTrobosStore";
-import { RadioTower, Search, Truck, Bike, X } from "lucide-react";
+import { RadioTower, Search, Truck, Bike, CarFront, X } from "lucide-react";
 
 export function FindingTandemModal() {
   const resetToIdle = useTrobosStore(s => s.resetToIdle);
+  const trip = useTrobosStore(s => s.currentTrip);
+  const isTandem = trip?.serviceType === "TANDEM";
   const assignTandem = useTrobosStore(s => s.assignTandem);
   useEffect(() => {
     const timer = window.setTimeout(assignTandem, 10000);
@@ -20,16 +22,16 @@ export function FindingTandemModal() {
           <div className="trobos-radar-ring one"/><div className="trobos-radar-ring two"/>
           <div className="trobos-radar-center"><Search size={25}/></div>
           <span className="trobos-search-bike"><Bike size={17}/></span>
-          <span className="trobos-search-truck"><Truck size={17}/></span>
+          <span className="trobos-search-truck">{isTandem ? <CarFront size={17}/> : <Truck size={17}/>}</span>
         </div>
         <div className="trobos-search-copy">
           <span className="trobos-sheet-eyebrow"><RadioTower size={13}/> DISPATCH SIMULATION</span>
           <h2>Mencari unit terbaik.</h2>
-          <p>Kami sedang memperagakan pencarian motor penjemput dan armada untuk mobil Anda.</p>
+          <p>{isTandem ? "Menyimulasikan rider penumpang dan driver yang akan membawa mobilmu." : "Menyimulasikan armada penumpang dan towing untuk kendaraanmu."}</p>
           <div className="trobos-search-loader"><i/><i/><i/></div>
         </div>
         <div className="trobos-journey-meta">
-          <span><Bike size={15}/> Penjemput</span><span><Truck size={15}/> Rescue</span>
+          <span><Bike size={15}/> Penjemput</span><span>{isTandem ? <CarFront size={15}/> : <Truck size={15}/>} {isTandem ? "Driver mobil" : "Towing"}</span>
         </div>
         <button type="button" onClick={resetToIdle} className="trobos-cancel-search"><X size={16}/> Batalkan simulasi</button>
         <p className="trobos-legal-note">Tidak ada permintaan yang dikirim kepada driver sungguhan.</p>

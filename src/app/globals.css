@@ -1387,3 +1387,21 @@ body {
   .tr-flow-completion-overlay { padding:10px; align-items:flex-end; padding-bottom:calc(12px + env(safe-area-inset-bottom,0px)); }
   .tr-flow-completion { max-height:calc(100dvh - 30px); padding:21px; border-radius:24px; }
 }
+
+/* Compact map bottom panel: users see both moving vehicles without scrolling.
+   Secondary chat/share/help actions expand explicitly. */
+.tr-journey-expand {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  width:100%; min-height:37px; margin-top:8px; border:1px solid var(--tr-line);
+  background:var(--tr-raised); color:var(--tr-ink); padding:7px 12px;
+  border-radius:11px; font-size:11px; font-weight:780;
+}
+.tr-journey-expand>svg { color:var(--tr-accent); transition:transform .18s ease; }
+.tr-journey-extra { display:flex; flex-direction:column; gap:6px; }
+.tr-journey-extra .trobos-stage-actions { margin-top:4px; }
+@media(max-width:767px) {
+  .tr-experience-tracking .trobos-journey-card { max-height:min(48dvh,420px); }
+  .tr-experience-tracking .trobos-journey-rows { margin-top:10px; }
+  .tr-experience-tracking .trobos-journey-meta { margin-top:9px; padding-top:9px; }
+  .tr-experience-tracking .trobos-journey-title strong { font-size:11px; }
+}

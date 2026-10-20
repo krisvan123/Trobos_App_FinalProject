@@ -35,7 +35,7 @@ export default function AppLayout({children}: {children: React.ReactNode}) {
           {children}
         </main>
       </div>
-      {(!home || (currentTrip && currentTrip.status !== "REQUESTED")) && <DemoController/>}
+      {process.env.NODE_ENV === "development" && (!home || (currentTrip && currentTrip.status !== "REQUESTED")) && <DemoController/>}
       <BottomNavigation/>
     </div>
   );
