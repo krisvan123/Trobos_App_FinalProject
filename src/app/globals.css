@@ -496,3 +496,12 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .trobos-radar-ring,.trobos-search-loader i { animation:none; }
 }
+
+.trobos-preview-action {
+  width:100%; margin-top:7px; min-height:43px; display:flex; align-items:center; justify-content:center; gap:10px;
+  border:1px solid var(--tr-line); background:var(--tr-raised); border-radius:13px;
+  color:var(--tr-ink); font-size:12px; font-weight:770;
+  transition:border-color .15s,background .15s;
+}
+.trobos-preview-action:hover { border-color:var(--tr-accent); background:rgba(194,118,81,.08); }
+.trobos-preview-action svg:first-child { color:var(--tr-accent); }

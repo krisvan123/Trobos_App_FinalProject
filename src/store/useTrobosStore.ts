@@ -579,10 +579,10 @@ export const useTrobosStore = create<TrobosStore>()(
           status: targetStatus,
           serviceType: state.serviceType,
           paymentMethod: state.paymentMethod,
-          origin: MOCK_LOCATIONS.current,
+          origin: state.pickupLocation,
           destination: state.selectedDestination,
-          carDestination: state.selectedWorkshop,
-          carDestinationType: state.carDestinationType,
+          carDestination: state.serviceType === "MECHANIC" && state.carDestinationType === "WORKSHOP" ? state.selectedWorkshop : state.selectedDestination,
+          carDestinationType: state.serviceType === "MECHANIC" ? state.carDestinationType : "SAME_AS_PASSENGER",
           problem,
           passengerCount: state.passengerCount,
           passengerTransport,
@@ -646,23 +646,23 @@ export const useTrobosStore = create<TrobosStore>()(
           if (get().isDemoRunning) fn();
         }, delay);
         const timers = [
-          schedule(() => get().assignTandem(), 2500),
-          schedule(() => get().setApproaching(), 4500),
-          schedule(() => get().setArrived(), 7000),
-          schedule(() => get().verifyOtp(get().currentTrip?.otpCode || ""), 9500),
+          schedule(() => get().assignTandem(), 1200),
+          schedule(() => get().setApproaching(), 3000),
+          schedule(() => get().setArrived(), 17700),
+          schedule(() => get().verifyOtp(get().currentTrip?.otpCode || ""), 19100),
           schedule(() => {
             const handover = get().currentTrip?.handover;
             if (handover) for (const key of ["front", "rear", "left", "right", "interior", "problemConfirmed"] as const) {
               if (!handover[key]) get().toggleChecklistItem(key);
             }
             get().confirmVehicleHandover();
-          }, 12000),
-          schedule(() => get().userArrivedAtDest(), 16500),
-          schedule(() => get().carArrivedAtDest(), 20500),
+          }, 21400),
+          schedule(() => get().userArrivedAtDest(), 60000),
+          schedule(() => get().carArrivedAtDest(), 78000),
           schedule(() => {
             get().completeTrip(5, ["Demo selesai"]);
             set({ isDemoRunning: false, demoTimers: [] });
-          }, 22000),
+          }, 79000),
         ];
         set({ demoTimers: timers });
       },

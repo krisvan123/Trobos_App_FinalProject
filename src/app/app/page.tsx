@@ -47,6 +47,7 @@ export default function HomePage() {
   const setServiceType = useTrobosStore(s => s.setServiceType);
   const passengerCount = useTrobosStore(s => s.passengerCount);
   const startBooking = useTrobosStore(s => s.startBooking);
+  const previewJourney = useTrobosStore(s => s.jumpToState);
   const reset = useTrobosStore(s => s.resetToIdle);
   const setArrived = useTrobosStore(s => s.setArrived);
   const theme = useTrobosStore(s => s.theme);
@@ -168,6 +169,9 @@ export default function HomePage() {
               <button type="button" className="trobos-primary-action" onClick={() => startBooking()}>
                 <span><Zap size={18} fill="currentColor"/> Atur Bantuan Sekarang</span>
                 <span className="trobos-primary-arrow"><ArrowRight size={20}/></span>
+              </button>
+              <button type="button" className="trobos-preview-action" onClick={() => previewJourney("TRIP_STARTED")}>
+                <Route size={18}/> Lihat animasi dua kendaraan <ArrowRight size={17}/>
               </button>
               <p className="trobos-legal-note">
                 <ShieldCheck size={14}/> Prototipe akademik · tanpa pemesanan atau pembayaran nyata
