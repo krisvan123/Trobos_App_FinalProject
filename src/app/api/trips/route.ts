@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { applyRenewal, backendConfigured, identifyRequest, sameOrigin, supabaseRequest } from "@/lib/server/supabase";
 import { calculateDemoFare } from "@/lib/pricing";
+import { WORKSHOP_DESTINATIONS } from "@/lib/mockData";
+import { nearestDemoWorkshop } from "@/lib/workshopRecommendation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,7 +56,11 @@ export async function POST(request: NextRequest) {
     });
     const origin = point(trip.origin);
     const destination = point(trip.destination);
-    const carDestination = point(trip.carDestination);
+    // Never trust a client-submitted workshop for the saved demo estimate.
+    // Rescue goes to the nearest item in the server-owned example list.
+    const carDestination = trip.serviceType === "MECHANIC"
+      ? point(nearestDemoWorkshop(destination, WORKSHOP_DESTINATIONS) || WORKSHOP_DESTINATIONS[0])
+      : destination;
     const fare = calculateDemoFare({
       serviceType: trip.serviceType,
       origin, passengerDestination: destination, carDestination,
