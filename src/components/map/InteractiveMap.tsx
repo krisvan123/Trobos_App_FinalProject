@@ -353,7 +353,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               setSelectedPoint({lat: event.latlng.lat, lng: event.latlng.lng});
             });
           }
-          map.on("dragstart", () => setFollowTarget("off");
+          map.on("dragstart", () => setFollowTarget("off"));
           // Keyless default: real OSM street tiles. Dark appearance is a CSS
           // filter on the raster tiles ONLY, leaving vehicle markers colorful.
           // A separately configured CARTO key enables native CARTO dark/light.
