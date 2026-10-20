@@ -138,18 +138,40 @@ export const WORKSHOP_DESTINATIONS: LocationPoint[] = [
   },
 ];
 
+/** Selectable demonstration pickups: illustrative coordinates, not live emergency locations. */
+export const DEMO_PICKUP_POINTS: LocationPoint[] = [
+  {
+    name: "Sudirman — Mayapada Tower",
+    address: "Karet Semanggi, Jakarta Selatan (titik contoh)",
+    lat: -6.2155, lng: 106.8217, areaTag: "Sudirman",
+  },
+  {
+    name: "Mega Kuningan",
+    address: "Setiabudi, Jakarta Selatan (titik contoh)",
+    lat: -6.2285, lng: 106.8268, areaTag: "Kuningan",
+  },
+  {
+    name: "SCBD — Pacific Place",
+    address: "Senayan, Jakarta Selatan (titik contoh)",
+    lat: -6.2244, lng: 106.8098, areaTag: "SCBD",
+  },
+  {
+    name: "Senayan — Gelora Bung Karno",
+    address: "Gelora, Jakarta Pusat (titik contoh)",
+    lat: -6.2198, lng: 106.7995, areaTag: "Senayan",
+  },
+  {
+    name: "Pondok Indah",
+    address: "Kebayoran Lama, Jakarta Selatan (titik contoh)",
+    lat: -6.2755, lng: 106.7821, areaTag: "Pondok Indah",
+  },
+];
 export const MOCK_LOCATIONS: {
   current: LocationPoint;
   destinations: LocationPoint[];
   workshops: LocationPoint[];
 } = {
-  current: {
-    name: "Jl. Jenderal Sudirman Kav. 28",
-    address: "Depan Mayapada Tower 2, Karet Semanggi, Jakarta Selatan",
-    lat: -6.2155,
-    lng: 106.8217,
-    areaTag: "Mobil Berhenti di Bahu Jalan",
-  },
+  current: DEMO_PICKUP_POINTS[0],
   destinations: [
     {
       name: "Pacific Place / SCBD (Kantor)",
