@@ -963,3 +963,81 @@ body {
 .tr-workshop-top span { display:block; color:var(--tr-accent-strong); font-size:10px; font-weight:830; letter-spacing:.07em; }
 .tr-workshop-top strong { display:block; font-size:13px; font-weight:820; margin-top:6px; }
 .tr-recommended-workshop p { font-size:11px; color:var(--tr-muted); line-height:1.5; margin-top:10px; }
+
+/* Book first, map second: deliberate two-phase ride-hailing information architecture. */
+.tr-before-booking { overflow:auto; background:var(--tr-bg); }
+.tr-planning-backdrop {
+  position:absolute; inset:0; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:clamp(24px,6vw,94px);
+  background:radial-gradient(circle at 75% 35%,rgba(194,118,81,.10),transparent 44%),
+    linear-gradient(155deg,var(--tr-bg),var(--tr-raised));
+}
+.tr-planning-backdrop>.tr-auth-visual { width:min(47%,580px); margin-left:auto; color:var(--tr-ink); }
+.tr-planning-backdrop .tr-auth-visual-top>p { color:var(--tr-muted); }
+.tr-planning-backdrop .tr-auth-visual-bottom>span { color:var(--tr-muted); }
+.tr-planning-backdrop>.tr-auth-visual h2 { font-size:clamp(27px,3.4vw,49px); }
+.tr-planning-microcopy {
+  position:absolute; top:25px; left:clamp(22px,4vw,72px); right:clamp(22px,4vw,72px);
+  display:flex; align-items:center; justify-content:space-between; gap:15px;
+  color:var(--tr-muted); font-size:10px; font-weight:850; letter-spacing:.12em;
+}
+.tr-planning-backdrop>p {
+  position:absolute; right:6%; bottom:clamp(19px,5vh,48px); max-width:440px;
+  color:var(--tr-muted); font-size:11px; line-height:1.6;
+}
+.tr-before-booking .trobos-command-panel {
+  max-height:calc(100% - 42px); background:var(--tr-surface);
+}
+.tr-before-booking .trobos-route-field select { width:100%; max-width:100%; }
+.tr-planner-gps {
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:7px; margin-top:8px;
+}
+.tr-planner-gps>button { display:inline-flex; align-items:center; gap:7px; color:var(--tr-accent-strong); font-size:11px; font-weight:760; }
+.tr-planner-gps>span { font-size:10px; color:var(--tr-muted); }
+.tr-location-notice { margin-top:8px; font-size:11px; line-height:1.5; color:var(--tr-muted); }
+.tr-planner-workshop {
+  display:flex; flex-direction:column; gap:5px; margin-top:14px; padding:13px;
+  border:1px solid rgba(194,118,81,.25); border-radius:13px; background:rgba(194,118,81,.07);
+}
+.tr-planner-workshop>span { display:flex; gap:7px; align-items:center; font-size:9px; font-weight:830; letter-spacing:.06em; color:var(--tr-accent-strong); }
+.tr-planner-workshop>strong { font-size:12px; font-weight:820; }
+.tr-planner-workshop>small { font-size:10px; line-height:1.5; color:var(--tr-muted); }
+.tr-tracking-summary {
+  position:absolute; z-index:20; top:102px; left:18px; display:flex; flex-direction:column; gap:5px;
+  min-width:245px; max-width:min(420px,calc(100% - 36px));
+  padding:15px 18px; border:1px solid var(--tr-line); border-radius:19px;
+  background:var(--tr-surface); color:var(--tr-ink); box-shadow:var(--tr-shadow);
+}
+.tr-tracking-live { display:flex; align-items:center; gap:10px; color:var(--tr-accent-strong); font-size:10px; font-weight:850; letter-spacing:.13em; }
+.tr-tracking-summary>strong { font-size:16px; font-weight:850; letter-spacing:-.02em; }
+.tr-tracking-summary>small { font-size:11px; color:var(--tr-muted); line-height:1.45; }
+.tr-approach-progress { width:100%; height:5px; border-radius:99px; overflow:hidden; margin-top:15px; background:var(--tr-line); }
+.tr-approach-progress-bar { height:100%; width:100%; border-radius:99px; transform:translateX(-100%);
+  background:var(--tr-accent); animation:tr-approach-loading 36s linear forwards; }
+@keyframes tr-approach-loading { to { transform:translateX(0); } }
+@media(min-width:768px) {
+  .tr-before-booking .trobos-command-panel { max-height:calc(100% - 38px); }
+  .tr-tracking-summary { left:22px; top:20px; }
+  .tr-after-booking .trobos-floating-header { left:auto; width:clamp(315px,37%,470px); }
+  .tr-after-booking .trobos-map-context { left:24px; top:135px; right:auto; }
+}
+@media(min-width:1024px) { .tr-after-booking .tr-tracking-summary { left:24px; top:24px; } }
+@media(max-width:767px) {
+  .tr-before-booking { height:100%; }
+  .tr-planning-backdrop { padding:18px; justify-content:flex-start; }
+  .tr-planning-backdrop>.tr-auth-visual { display:none; }
+  .tr-planning-backdrop>p { display:none; }
+  .tr-planning-microcopy { top:14px; font-size:9px; }
+  .tr-before-booking .trobos-command-panel {
+    left:10px; right:10px; top:43px; bottom:calc(80px + env(safe-area-inset-bottom,0px));
+    max-height:none!important; overflow:auto; border-radius:23px;
+  }
+  .tr-before-booking .trobos-panel-content { padding:11px 16px 16px; }
+  .tr-after-booking .trobos-floating-header { top:13px; }
+  .tr-tracking-summary { top:65px; left:12px; padding:10px 13px; max-width:calc(100% - 120px); }
+  .tr-tracking-summary>strong { font-size:12px; }
+  .tr-tracking-summary>small { display:none; }
+}
+@media(prefers-reduced-motion:reduce) { .tr-approach-progress-bar { animation:none; transform:translateX(0); } }
