@@ -735,7 +735,12 @@ export const useTrobosStore = create<TrobosStore>()(
       // refreshing the browser does not resurrect the overlapping route.
       version: 2,
       migrate: (persisted) => {
-        const previous = persisted as Partial<TrobosStore>;
+        const previous = persisted as Pick<TrobosStore,
+          "theme" | "hasSeenTutorial" | "user" | "vehicles" | "activeVehicleId"
+          | "selectedDestination" | "pickupLocation" | "selectedWorkshop"
+          | "carDestinationType" | "selectedProblemId" | "passengerCount"
+          | "serviceType" | "paymentMethod" | "tripHistory" | "currentTrip"
+        >;
         const trip = previous.currentTrip;
         if (!trip || trip.serviceType !== "MECHANIC") return previous;
         const workshop = nearestDemoWorkshop(trip.destination, WORKSHOP_DESTINATIONS);
@@ -743,7 +748,7 @@ export const useTrobosStore = create<TrobosStore>()(
         return {
           ...previous,
           selectedWorkshop: workshop,
-          currentTrip: { ...trip, carDestination: workshop, carDestinationType: "WORKSHOP" },
+          currentTrip: { ...trip, carDestination: workshop, carDestinationType: "WORKSHOP" as const },
         };
       },
       partialize: (state) => ({
