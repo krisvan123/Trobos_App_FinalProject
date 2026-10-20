@@ -3,228 +3,135 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Zap, User, Mail, Lock, ArrowRight, Bike, Car } from "lucide-react";
+import { AlertCircle, Bike, CarFront, CheckCircle2, Eye, EyeOff, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { useTrobosStore } from "@/store/useTrobosStore";
+import { AuthFrame, AuthSubmit } from "@/components/public/BrandExperience";
+
+const hasBackend = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+const intro = [
+  { name: "Penumpang tetap bergerak", info: "Simulasikan unit penumpang yang mengikuti rute di peta.", icon: Bike },
+  { name: "Mobil tetap tertangani", info: "Pantau jalur mobil dan towing secara terpisah.", icon: CarFront },
+  { name: "Semua dalam satu tampilan", info: "Rute, status, dan ringkasan perjalanan pada satu aplikasi.", icon: CheckCircle2 },
+];
 
 export default function RegisterPage() {
   const router = useRouter();
-  const login = useTrobosStore((s) => s.login);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    agreeTerms: false,
-  });
-
-  const hasBackend = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const login = useTrobosStore(s => s.login);
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "", agree: false });
+  const [visible, setVisible] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [step, setStep] = useState<"form" | "onboarding">("form");
-  const [onboardingIndex, setOnboardingIndex] = useState(0);
+  const [registered, setRegistered] = useState(false);
+  const [introStep, setIntroStep] = useState(0);
 
-  const onboardingScreens = [
-    {
-      title: "Escape the Traffic",
-      subtitle: "Konsep layanan rider untuk mengantar penumpang (simulasi).",
-      icon: Bike,
-    },
-    {
-      title: "Your Car Is Still Safe",
-      subtitle: "Konsep driver yang membantu kendaraan Anda (simulasi).",
-      icon: Car,
-    },
-    {
-      title: "One Tap. Two Drivers. One Destination.",
-      subtitle: "Ilustrasi dua jalur perjalanan menuju lokasi tujuan.",
-      icon: Zap,
-    },
-  ];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
-    if (!hasBackend) {
-      login(formData.email, formData.name);
-      setStep("onboarding");
-      return;
+    if (form.password !== form.confirm) {
+      setError("Konfirmasi password harus sama."); return;
     }
+    if (form.password.length < 8 || !form.agree) {
+      setError("Password minimal delapan karakter dan konfirmasi demo diperlukan."); return;
+    }
+    setBusy(true);
     try {
-      const response = await fetch("/api/auth", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "register", email: formData.email, password: formData.password, name: formData.name }),
-      });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "Pendaftaran gagal");
-      if (body.pendingVerification) {
-        setError("Periksa email Anda untuk verifikasi, lalu masuk dengan akun baru.");
-        return;
+      if (hasBackend) {
+        const response = await fetch("/api/auth", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "register", email: form.email.trim(), password: form.password, name: form.name.trim() }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Pendaftaran gagal.");
+        if (data.pendingVerification) {
+          setError("Periksa email untuk verifikasi, lalu masuk menggunakan akun tersebut.");
+          return;
+        }
       }
-      login(formData.email, formData.name);
-      setStep("onboarding");
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Gagal mendaftarkan akun");
-    }
+      login(form.email.trim(), form.name.trim());
+      setRegistered(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Pendaftaran belum berhasil.");
+    } finally { setBusy(false); }
   };
 
-  const handleNext = () => {
-    if (onboardingIndex < onboardingScreens.length - 1) {
-      setOnboardingIndex((i) => i + 1);
-    } else {
-      router.push("/app");
-    }
-  };
+  if (registered) {
+    const current = intro[introStep];
+    const Icon = current.icon;
+    return (
+      <AuthFrame eyebrow="WELCOME TO TROBOS" title="Satu perjalanan, dua jalur."
+        subtitle="Kenali pengalaman yang akan kamu temukan di aplikasi.">
+        <div className="tr-onboarding">
+          <div className="tr-onboarding-progress">
+            {intro.map((_, i) => <span key={i} className={i <= introStep ? "is-active" : ""}/>)}
+          </div>
+          <div className="tr-onboarding-icon"><Icon size={35} strokeWidth={1.6}/></div>
+          <span className="tr-kicker">TAHAP 0{introStep + 1} / 03</span>
+          <h2>{current.name}</h2>
+          <p>{current.info}</p>
+          <button type="button" className="tr-public-primary" onClick={() =>
+            introStep < intro.length - 1 ? setIntroStep(i => i + 1) : router.push("/app")
+          }>
+            {introStep === intro.length - 1 ? "Mulai pengalaman TROBOS" : "Lanjut ke tahap berikutnya"}
+            <CheckCircle2 size={18}/>
+          </button>
+        </div>
+      </AuthFrame>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        {step === "form" ? (
-          <>
-            <div className="text-center space-y-1.5">
-              <Link href="/" className="inline-flex items-center gap-2 mb-2">
-                <div className="w-10 h-10 rounded-2xl bg-[#FF4D00] flex items-center justify-center shadow-sm">
-                  <Zap className="w-5 h-5 text-white fill-white" />
-                </div>
-                <span className="text-2xl font-black tracking-tight text-slate-900">
-                  TROBOS
-                </span>
-              </Link>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Buat Akun Baru
-              </h1>
-              <p className="text-xs text-slate-500">
-                Daftar untuk mencoba simulasi layanan mobilitas TROBOS.
-              </p>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-              {!hasBackend && <p className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">Mode Demo — akun tidak dibuat di server.</p>}
-              {error && <p role="alert" className="text-xs p-3 rounded-xl bg-blue-50 text-blue-800">{error}</p>}
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nama Lengkap
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-slate-900"
-                    />
-                  </div>
-                </div>
-
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Email
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-slate-900"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="password"
-                      autoComplete="new-password"
-                      minLength={8}
-                      required
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-slate-900"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 pt-1 text-xs text-slate-600">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    required
-                    checked={formData.agreeTerms}
-                    onChange={(e) => setFormData({ ...formData, agreeTerms: e.target.checked })}
-                    className="accent-[#FF4D00]"
-                  />
-                  <label htmlFor="terms" className="text-[11px]">
-                    Saya memahami bahwa TROBOS adalah prototipe akademik; tidak ada bantuan, pembayaran, atau asuransi sungguhan.
-                  </label>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-3.5 rounded-xl bg-[#FF4D00] hover:bg-[#E64400] text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-1.5 mt-2"
-                >
-                  <span>Daftar & Mulai</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
-
-              <div className="mt-4 text-center text-xs text-slate-500">
-                Sudah punya akun?{" "}
-                <Link href="/login" className="text-[#FF4D00] font-bold hover:underline">
-                  Masuk di sini
-                </Link>
-              </div>
-            </div>
-          </>
-        ) : (
-          /* Simple 3-step Onboarding */
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm text-center space-y-5">
-            <div className="flex justify-center gap-1">
-              {onboardingScreens.map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-1 rounded-full transition-all ${
-                    onboardingIndex === i ? "w-6 bg-[#FF4D00]" : "w-2 bg-slate-200"
-                  }`}
-                />
-              ))}
-            </div>
-
-            <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center bg-orange-50 border border-orange-200">
-              {React.createElement(onboardingScreens[onboardingIndex].icon, {
-                className: "w-7 h-7 text-[#FF4D00]",
-              })}
-            </div>
-
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                Langkah {onboardingIndex + 1} dari 3
-              </div>
-              <h2 className="text-xl font-black text-slate-900">
-                {onboardingScreens[onboardingIndex].title}
-              </h2>
-              <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto leading-relaxed">
-                {onboardingScreens[onboardingIndex].subtitle}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleNext}
-              className="w-full py-3.5 rounded-xl bg-[#FF4D00] hover:bg-[#E64400] text-white font-bold text-xs shadow-sm transition"
-            >
-              {onboardingIndex === onboardingScreens.length - 1
-                ? "Mulai Pakai Trobos"
-                : "Lanjut"}
+    <AuthFrame eyebrow="GET STARTED" title={hasBackend ? "Mulai dengan TROBOS." : "Buat profil demo."}
+      subtitle={hasBackend ? "Daftarkan akun untuk menyimpan permintaan demo." : "Ciptakan profil lokal untuk menjelajahi aplikasi tanpa membuat akun server."}>
+      {!hasBackend && <div className="tr-mode-hint">
+        <CheckCircle2 size={18}/>
+        <span>Profil ini hanya disimpan di browser, bukan akun layanan transportasi sungguhan.</span>
+      </div>}
+      <form onSubmit={submit} className="tr-auth-form">
+        {error && <p role="alert" className="tr-form-alert"><AlertCircle size={17}/>{error}</p>}
+        <div className="tr-form-field">
+          <label htmlFor="tr-reg-name">Nama lengkap</label>
+          <div className="tr-input-wrap"><UserRound size={19}/>
+            <input id="tr-reg-name" type="text" autoComplete="name" required minLength={2} maxLength={100}
+              placeholder="Nama kamu" value={form.name} onChange={e => setForm({...form, name:e.target.value})}/>
+          </div>
+        </div>
+        <div className="tr-form-field">
+          <label htmlFor="tr-reg-email">Email</label>
+          <div className="tr-input-wrap"><Mail size={19}/>
+            <input id="tr-reg-email" type="email" autoComplete="email" required
+              placeholder="nama@email.com" value={form.email} onChange={e => setForm({...form, email:e.target.value})}/>
+          </div>
+        </div>
+        <div className="tr-form-field">
+          <label htmlFor="tr-reg-password">Password</label>
+          <div className="tr-input-wrap"><LockKeyhole size={19}/>
+            <input id="tr-reg-password" type={visible ? "text" : "password"}
+              autoComplete="new-password" minLength={8} maxLength={128} required
+              placeholder="Minimal 8 karakter" value={form.password}
+              onChange={e => setForm({...form,password:e.target.value})}/>
+            <button type="button" onClick={() => setVisible(v => !v)}
+              aria-label={visible ? "Sembunyikan password" : "Tampilkan password"}>
+              {visible ? <EyeOff size={19}/> : <Eye size={19}/>}
             </button>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+        <div className="tr-form-field">
+          <label htmlFor="tr-reg-confirm">Konfirmasi password</label>
+          <div className="tr-input-wrap"><LockKeyhole size={19}/>
+            <input id="tr-reg-confirm" type={visible ? "text" : "password"}
+              autoComplete="new-password" minLength={8} maxLength={128} required
+              placeholder="Ulangi password" value={form.confirm}
+              onChange={e => setForm({...form,confirm:e.target.value})}/>
+          </div>
+        </div>
+        <label className="tr-form-consent">
+          <input type="checkbox" checked={form.agree} onChange={e => setForm({...form,agree:e.target.checked})} required/>
+          <span>Saya memahami TROBOS adalah prototipe akademik dan belum menyediakan driver, pembayaran, atau asuransi aktif.</span>
+        </label>
+        <AuthSubmit busy={busy}>{busy ? "Menyiapkan..." : hasBackend ? "Buat akun TROBOS" : "Buat profil demo"}</AuthSubmit>
+      </form>
+      <div className="tr-auth-switch">Sudah punya akun? <Link href="/login">Masuk ke TROBOS</Link></div>
+      <p className="tr-auth-disclaimer">Gunakan informasi contoh untuk profil lokal jika tidak ingin menyimpan data pribadi pada browser bersama.</p>
+    </AuthFrame>
   );
 }
