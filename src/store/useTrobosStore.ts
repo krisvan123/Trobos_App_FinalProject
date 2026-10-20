@@ -37,6 +37,8 @@ interface TrobosStore {
   isTutorialOpen: boolean;
   isChatOpen: boolean;
   user: UserProfile;
+  pickupLocation: LocationPoint;
+  setPickupLocation: (location: LocationPoint) => void;
   vehicles: Vehicle[];
   activeVehicleId: string;
   selectedDestination: LocationPoint;
@@ -136,6 +138,7 @@ export const useTrobosStore = create<TrobosStore>()(
       isTutorialOpen: false,
       isChatOpen: false,
       user: MOCK_USER,
+      pickupLocation: MOCK_LOCATIONS.current,
       vehicles: MOCK_VEHICLES,
       activeVehicleId: MOCK_VEHICLES[0].id,
       selectedDestination: MOCK_LOCATIONS.destinations[0],
@@ -208,6 +211,7 @@ export const useTrobosStore = create<TrobosStore>()(
         });
       },
 
+      setPickupLocation: (location) => set({ pickupLocation: location }),
       setSelectedDestination: (dest) => set({ selectedDestination: dest }),
       setSelectedWorkshop: (shop) => set({ selectedWorkshop: shop }),
       setCarDestinationType: (type) => set({ carDestinationType: type }),
@@ -304,7 +308,7 @@ export const useTrobosStore = create<TrobosStore>()(
           status: "REQUESTED",
           serviceType: state.serviceType,
           paymentMethod: state.paymentMethod,
-          origin: MOCK_LOCATIONS.current,
+          origin: state.pickupLocation,
           destination: dest,
           carDestination: carDest,
           carDestinationType: state.carDestinationType,
@@ -696,6 +700,7 @@ export const useTrobosStore = create<TrobosStore>()(
         vehicles: state.vehicles,
         activeVehicleId: state.activeVehicleId,
         selectedDestination: state.selectedDestination,
+        pickupLocation: state.pickupLocation,
         selectedWorkshop: state.selectedWorkshop,
         carDestinationType: state.carDestinationType,
         selectedProblemId: state.selectedProblemId,

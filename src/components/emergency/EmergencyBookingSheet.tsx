@@ -49,6 +49,7 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
   onClose,
 }) => {
   const currentTrip = useTrobosStore((s) => s.currentTrip);
+  const pickupLocation = useTrobosStore((s) => s.pickupLocation);
   const selectedDestination = useTrobosStore((s) => s.selectedDestination);
   const setSelectedDestination = useTrobosStore((s) => s.setSelectedDestination);
   const selectedWorkshop = useTrobosStore((s) => s.selectedWorkshop);
@@ -121,8 +122,8 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
   };
 
   const paymentOptions: { id: PaymentMethod; label: string; desc: string; icon: React.ReactNode }[] = [
-    { id: "GOPAY", label: "GoPay", desc: "Saldo Rp 250.000", icon: <Wallet className="w-4 h-4 text-sky-600" /> },
-    { id: "OVO", label: "OVO", desc: "Saldo Rp 120.000", icon: <Wallet className="w-4 h-4 text-purple-600" /> },
+    { id: "GOPAY", label: "GoPay", desc: "Metode demo — tanpa pembayaran", icon: <Wallet className="w-4 h-4 text-sky-600" /> },
+    { id: "OVO", label: "OVO", desc: "Metode demo — tanpa pembayaran", icon: <Wallet className="w-4 h-4 text-purple-600" /> },
     { id: "QRIS", label: "QRIS Instan", desc: "BCA / Mandiri / ShopeePay", icon: <Zap className="w-4 h-4 text-emerald-600" /> },
     { id: "CARD", label: "Kartu Debit/Kredit", desc: "Visa / Mastercard", icon: <CreditCard className="w-4 h-4 text-blue-600" /> },
     { id: "CASH", label: "Tunai", desc: "Bayar langsung ke pengemudi", icon: <Users className="w-4 h-4 text-slate-600" /> },
@@ -198,7 +199,7 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
                   {activeVehicle.plate}
                 </span>
                 <span className="text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-0.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Terdaftar & Berasuransi
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Kendaraan Demo
                 </span>
               </div>
             </div>
@@ -356,10 +357,10 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
                   />
                   <div className="flex-1 min-w-0 text-xs">
                     <span className="font-semibold text-slate-800 dark:text-slate-200 block truncate">
-                      Foto berhasil diunggah
+                      Foto dipilih untuk pratinjau
                     </span>
                     <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                      ✓ Terlampir ke tim mekanik
+                      Belum dikirim ke tim mekanik (demo)
                     </span>
                   </div>
                   <button
@@ -410,10 +411,10 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
                 Titik Penjemputan Anda
               </div>
               <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                {MOCK_LOCATIONS.current.name}
+                {pickupLocation.name}
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                {MOCK_LOCATIONS.current.address}
+                {pickupLocation.address}
               </div>
             </div>
           </div>
@@ -427,7 +428,7 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
             </div>
             <div className="flex-1 overflow-hidden">
               <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
-                Tujuan Anda & Mobil ({passengerTransport.type === "MOTOR" ? "Motor" : "Mobil"})
+                Tujuan Penumpang ({passengerTransport.type === "MOTOR" ? "Motor" : "Mobil"})
               </div>
               <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
                 {selectedDestination.name}
@@ -476,7 +477,7 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
               <CreditCard className="w-4 h-4 text-[#FF4D00]" />
-              <span>Metode Pembayaran</span>
+              <span>Metode Pembayaran (Demo)</span>
             </span>
             <span className="text-[10px] text-slate-400">Pilihan Terpilih</span>
           </div>
@@ -519,7 +520,7 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
                 Total Biaya Layanan
               </div>
               <div className="text-xl font-black text-slate-900 dark:text-white">
-                {formatRupiah(currentTrip?.fare.totalFare || (serviceType === "MECHANIC" ? 220000 : 89000))}
+                {formatRupiah(serviceType === "MECHANIC" ? 220000 : 89000)}
               </div>
             </div>
             <button
@@ -575,7 +576,7 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
               )}
               <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium pt-1.5 flex items-center gap-1 border-t border-slate-200 dark:border-slate-700">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>Termasuk polis perlindungan keselamatan komprehensif.</span>
+                <span>Asuransi tidak aktif dalam prototipe ini.</span>
               </div>
             </div>
           )}
@@ -589,7 +590,7 @@ export const EmergencyBookingSheet: React.FC<EmergencyBookingSheetProps> = ({
             className="w-full py-4 rounded-2xl bg-[#FF4D00] hover:bg-[#E64400] active:scale-[0.99] text-white font-black text-base shadow-elevated transition flex items-center justify-center gap-2"
           >
             <Zap className="w-5 h-5 fill-white" />
-            <span>MINTA BANTUAN SEKARANG</span>
+            <span>SIMULASIKAN PERMINTAAN</span>
           </button>
 
           <button

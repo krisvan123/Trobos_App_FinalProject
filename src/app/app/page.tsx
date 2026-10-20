@@ -29,6 +29,9 @@ import {
 export default function HomePage() {
   const user = useTrobosStore((s) => s.user);
   const currentTrip = useTrobosStore((s) => s.currentTrip);
+  const pickupLocation = useTrobosStore((s) => s.pickupLocation);
+  const selectedDestination = useTrobosStore((s) => s.selectedDestination);
+  const selectedWorkshop = useTrobosStore((s) => s.selectedWorkshop);
   const startBooking = useTrobosStore((s) => s.startBooking);
   const resetToIdle = useTrobosStore((s) => s.resetToIdle);
   const setArrived = useTrobosStore((s) => s.setArrived);
@@ -62,8 +65,11 @@ export default function HomePage() {
       <div className="absolute inset-0 z-0">
         <InteractiveMap
           status={status}
-          userProgress={currentTrip?.userProgressPercent || 0}
-          carProgress={currentTrip?.carProgressPercent || 0}
+          origin={currentTrip?.origin || pickupLocation}
+          passengerDestination={currentTrip?.destination || selectedDestination}
+          carDestination={currentTrip?.carDestination || selectedWorkshop}
+          userProgress={currentTrip?.userProgressPercent ?? 0}
+          carProgress={currentTrip?.carProgressPercent ?? 0}
           originName={currentTrip?.origin.name || MOCK_LOCATIONS.current.name}
           destinationName={
             currentTrip?.destination.name || MOCK_LOCATIONS.destinations[0].name
@@ -88,7 +94,7 @@ export default function HomePage() {
           <div className="flex-1 min-w-0 flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200">
             <MapPin className="w-3.5 h-3.5 text-red-600 dark:text-red-400 shrink-0" />
             <span className="truncate font-medium text-[11px] sm:text-xs">
-              {MOCK_LOCATIONS.current.name}
+              {pickupLocation.name}
             </span>
           </div>
 
