@@ -59,12 +59,18 @@ export function DualJourneyTracker() {
           </button>
         </div>
         <div className="tr-trip-skip-grid" role="group" aria-label="Kontrol lewati animasi perjalanan">
-          <button type="button" onClick={skipPassenger} disabled={passengerDone}
+          <button type="button" onClick={() => {
+            skipPassenger();
+            if (!carDone) setMapFocus("tow");
+          }} disabled={passengerDone}
             aria-label="Lewati animasi perjalanan penumpang sampai tujuan">
             {passengerDone ? <Check size={16}/> : <FastForward size={16}/>}
             <span>{passengerDone ? "Penumpang tiba" : "Skip penumpang"}</span>
           </button>
-          <button type="button" onClick={skipCar} disabled={carDone}
+          <button type="button" onClick={() => {
+            skipCar();
+            if (!passengerDone) setMapFocus("passenger");
+          }} disabled={carDone}
             aria-label={isTandem ? "Lewati animasi mobil pelanggan sampai tujuan" : "Lewati animasi towing hingga bengkel"}>
             {carDone ? <Check size={16}/> : <FastForward size={16}/>}
             <span>{carDone ? (isTandem ? "Mobil tiba" : "Derek tiba") : (isTandem ? "Skip mobil" : "Skip derek")}</span>
