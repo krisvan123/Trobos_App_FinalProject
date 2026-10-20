@@ -12,7 +12,7 @@ import { OTPVerificationCard } from "@/components/emergency/OTPVerificationCard"
 import { VehicleHandoverModal } from "@/components/emergency/VehicleHandoverModal";
 import { DualJourneyTracker } from "@/components/emergency/DualJourneyTracker";
 import { TripCompletedModal } from "@/components/emergency/TripCompletedModal";
-import { OnboardingTutorialModal } from "@/components/common/OnboardingTutorialModal";
+
 import { DriverChatModal } from "@/components/emergency/DriverChatModal";
 import { ArrowRight, Bell, Bike, CarFront, ChevronRight, MapPin, Moon, Navigation, ShieldCheck, Sun, UserRound } from "lucide-react";
 
@@ -41,8 +41,6 @@ export default function HomePage() {
   const toggleTheme = useTrobosStore(s => s.toggleTheme);
   const reset = useTrobosStore(s => s.resetToIdle);
   const setArrived = useTrobosStore(s => s.setArrived);
-  const isTutorialOpen = useTrobosStore(s => s.isTutorialOpen);
-  const setTutorialOpen = useTrobosStore(s => s.setTutorialOpen);
   const isChatOpen = useTrobosStore(s => s.isChatOpen);
   const setChatOpen = useTrobosStore(s => s.setChatOpen);
   const transport = trip?.passengerTransport;
@@ -119,7 +117,6 @@ export default function HomePage() {
         {(status === "TRIP_STARTED" || status === "USER_ARRIVED" || status === "VEHICLE_ARRIVED") && <DualJourneyTracker/>}
         {status === "COMPLETED" && <TripCompletedModal/>}
       </div>
-      <OnboardingTutorialModal isOpen={isTutorialOpen} onClose={()=>setTutorialOpen(false)}/>
       <DriverChatModal isOpen={isChatOpen} onClose={()=>setChatOpen(false)}/>
     </div>
   );

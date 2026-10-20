@@ -21,6 +21,7 @@ interface InteractiveMapProps {
   passengerKind?: "bike" | "car";
   carKind?: "tow" | "car";
   selectionMode?: "pickup" | "destination";
+  onSelectionComplete?: () => void;
 }
 
 type Position = { lat: number; lng: number };
@@ -233,6 +234,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   passengerKind = "bike",
   carKind = "tow",
   selectionMode,
+  onSelectionComplete,
 }) => {
   const theme = useTrobosStore(s => s.theme);
   const setPickupLocation = useTrobosStore(s => s.setPickupLocation);
@@ -611,6 +613,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             else setSelectedDestination(point);
             setMessage("Titik berhasil dipilih. Rute GPS atau titik pilihan adalah ilustrasi jika penyedia routing tidak tersedia.");
             setSelectedPoint(null);
+            onSelectionComplete?.();
           }}>Gunakan titik ini <Navigation2 size={15}/></button>
         </>}
       </div>}

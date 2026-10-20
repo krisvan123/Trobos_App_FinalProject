@@ -85,7 +85,7 @@ export default function DriverPage() {
               <div><span><Bike size={17}/> Penumpang <strong>{trip.userProgressPercent}%</strong></span><i><b style={{width:trip.userProgressPercent+"%"}}/></i></div>
               <div><span>{mechanic?<Truck size={17}/>:<CarFront size={17}/>} {mechanic?"Derek ke bengkel":"Mobil pelanggan"} <strong>{trip.carProgressPercent}%</strong></span><i><b style={{width:trip.carProgressPercent+"%"}}/></i></div>
             </div>
-            <p className="tr-operator-muted">Progres disinkronkan melalui state demo browser. Belum ada koneksi GPS lintas perangkat.</p>
+            <p className="tr-operator-muted">Progres adalah state browser lokal. Buka halaman pelanggan dan operator bergantian pada tab yang sama; tidak ada sinkronisasi antarperangkat.</p>
           </section>
           <section className="tr-operator-card">
             <div className="tr-operator-card-head"><span><MessageCircle size={15}/> CHAT PERJALANAN</span><span>LOKAL</span></div>

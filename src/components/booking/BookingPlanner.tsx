@@ -246,7 +246,8 @@ export function BookingPlanner() {
           </div>
           <div className="tr-location-picker-map">
             <InteractiveMap status="IDLE" origin={pickup} passengerDestination={destination}
-              carDestination={serviceType==="MECHANIC"?workshop:destination} selectionMode={mapSelection}/>
+              carDestination={serviceType==="MECHANIC"?workshop:destination} selectionMode={mapSelection}
+              onSelectionComplete={()=>setMapSelection(null)}/>
           </div>
           <p>Pratinjau rute dan titik belum terverifikasi. Untuk lokasi bebas, animasi rute mungkin berupa ilustrasi.</p>
         </div>

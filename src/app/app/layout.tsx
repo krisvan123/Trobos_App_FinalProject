@@ -7,12 +7,15 @@ import { Navbar } from "@/components/navigation/Navbar";
 import { DesktopSidebar } from "@/components/navigation/DesktopSidebar";
 import { BottomNavigation } from "@/components/navigation/BottomNavigation";
 import { DemoController } from "@/components/demo/DemoController";
+import { OnboardingTutorialModal } from "@/components/common/OnboardingTutorialModal";
 
 export default function AppLayout({children}: {children: React.ReactNode}) {
   const pathname = usePathname();
   const home = pathname === "/app";
   const currentTrip = useTrobosStore(state => state.currentTrip);
   const theme = useTrobosStore(s => s.theme);
+  const tutorialOpen = useTrobosStore(s => s.isTutorialOpen);
+  const setTutorialOpen = useTrobosStore(s => s.setTutorialOpen);
 
 
   useEffect(() => {
@@ -37,6 +40,7 @@ export default function AppLayout({children}: {children: React.ReactNode}) {
       </div>
       {process.env.NODE_ENV === "development" && (!home || (currentTrip && currentTrip.status !== "REQUESTED")) && <DemoController/>}
       <BottomNavigation/>
+      <OnboardingTutorialModal isOpen={tutorialOpen} onClose={()=>setTutorialOpen(false)}/>
     </div>
   );
 }

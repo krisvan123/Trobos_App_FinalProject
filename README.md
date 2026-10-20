@@ -166,3 +166,39 @@ trip has started, **Skip penumpang** and **Skip derek/Skip mobil** advance
 their respective vehicle independently. The remaining animated vehicle
 continues automatically, regardless of which finishes first. The journey
 only completes after both progress values reach 100%.
+
+## Prototype quality pass — October 21, 2026
+
+- **Map and route selection:** all predefined pickup, destination and workshop
+  coordinates are eligible for keyless road routing. Each road leg is requested
+  independently. If unavailable, its fallback is visibly called an illustration
+  rather than real road navigation. A separate optional map picker supports
+  searching *preset* locations or tapping a point. Arbitrary GPS/map-selected
+  coordinates are never forwarded to the public OSRM demo service.
+- **Operator demo:** the customer and driver/operator pages use the same
+  persisted Zustand trip state and demo chat messages **when navigating on the
+  same browser tab**. This is *not* real-time dispatch across devices or a real
+  communication service.
+- **Trust:** safety/help/chat disclaim that insurance, operator verification,
+  call center, phone and towing partnerships are not active.
+- **Quality:** regression tests check routing constraints, store integration and
+  prototype safety labels. CI continues to run Node tests, TypeScript and a
+  Next.js production build. Real phone/tablet browser testing, automated
+  cross-device E2E testing and live routing availability still require
+  separate verification.
+
+### Manual visual acceptance checks
+
+1. At 375px, 768px and 1440px, verify the booking form, theme and bottom
+   navigation have no clipped buttons or horizontal overflow.
+2. Choose Mega Kuningan pickup and SCBD destination; inspect preview and
+   confirm. Switch to Rescue and verify the workshop differs from passenger
+   destination when appropriate.
+3. Try the preset search and map-pin selector. Custom coordinates must display
+   fallback routing honestly; do not assume Google/OSRM routing is available.
+4. Place a demo booking, navigate to /driver *in the same tab*, verify its
+   location/status, send a reply, navigate back and verify chat.
+5. Skip either vehicle during tracking and confirm the other continues.
+6. Check help tutorial, safety disclosures, dark mode, profile and vehicles.
+7. Refresh an unfinished demo and confirm the state loads without stale
+   alerts, phantom drivers, or false insurance/verification claims.
