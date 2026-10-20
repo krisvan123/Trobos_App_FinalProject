@@ -68,6 +68,7 @@ export default function LandingPage() {
         </div>
       </header>
 
+      <div className="bg-amber-50 border-b border-amber-200 text-amber-950 text-center px-4 py-2 text-xs font-semibold">Prototipe akademik TROBOS: driver, GPS, pembayaran, dan asuransi masih dalam mode simulasi.</div>
       {/* HERO SECTION */}
       <section className="pt-12 pb-16 px-4 sm:px-6 max-w-6xl mx-auto w-full flex flex-col lg:flex-row items-center gap-12">
         <div className="flex-1 space-y-5 text-center lg:text-left">
@@ -107,15 +108,15 @@ export default function LandingPage() {
           {/* Trust Metrics */}
           <div className="pt-4 border-t border-slate-200 flex items-center justify-center lg:justify-start gap-8 text-xs text-slate-500">
             <div>
-              <div className="text-xl font-black text-slate-900">~3 Menit</div>
+              <div className="text-xl font-black text-slate-900">Simulasi</div>
               <div>Respon Siaga</div>
             </div>
             <div>
-              <div className="text-xl font-black text-emerald-600">100%</div>
+              <div className="text-xl font-black text-emerald-600">Konsep</div>
               <div>Towing Flatbed Resmi</div>
             </div>
             <div>
-              <div className="text-xl font-black text-blue-600">Rp 1 Miliar</div>
+              <div className="text-xl font-black text-blue-600">Belum Aktif</div>
               <div>Asuransi All-Risk</div>
             </div>
           </div>

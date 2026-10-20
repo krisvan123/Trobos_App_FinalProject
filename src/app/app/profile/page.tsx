@@ -269,7 +269,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <span className="text-slate-400 dark:text-slate-500 block text-[11px]">Status Kependudukan</span>
-                <span className="font-semibold text-emerald-700 dark:text-emerald-400">KTP Terverifikasi (Dukcapil)</span>
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">Profil Demo — Belum Terverifikasi</span>
               </div>
             </div>
 

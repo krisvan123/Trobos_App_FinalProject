@@ -73,11 +73,11 @@ export default function SafetyCenterPage() {
             Operator Derek Bersertifikat Resmi
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Mitra derek kami menggunakan truk towing gendong (flatbed) berstandar industri dan operator berlisensi SIM B1 Umum dengan rekam jejak terverifikasi.
+            Prototipe menampilkan ilustrasi operator towing. Belum ada mitra maupun sertifikasi yang diverifikasi sistem.
           </p>
           <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1 pt-1">
             <CheckCircle className="w-3.5 h-3.5" />
-            <span>100% Truk Gendong Flatbed Resmi</span>
+            <span>Data Armada Contoh</span>
           </div>
         </div>
 
@@ -90,11 +90,11 @@ export default function SafetyCenterPage() {
             Asuransi Derek All-Risk Rp 1 Miliar
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Mobil Anda otomatis terlindungi asuransi komprehensif saat dinaikkan ke truk gendong hingga serah terima di bengkel rekanan.
+            Skema asuransi ini adalah contoh akademik, bukan polis aktif atau penawaran pertanggungan.
           </p>
           <div className="text-[11px] text-blue-700 dark:text-blue-400 font-semibold flex items-center gap-1 pt-1">
             <CheckCircle className="w-3.5 h-3.5" />
-            <span>Polis Asuransi Aktif Otomatis</span>
+            <span>Ilustrasi — Belum Aktif</span>
           </div>
         </div>
 
@@ -111,7 +111,7 @@ export default function SafetyCenterPage() {
           </p>
           <div className="text-[11px] text-orange-700 dark:text-orange-400 font-semibold flex items-center gap-1 pt-1">
             <CheckCircle className="w-3.5 h-3.5" />
-            <span>Dual Tracking Terenkripsi</span>
+            <span>Visualisasi Tracking Demo</span>
           </div>
         </div>
 
@@ -124,7 +124,7 @@ export default function SafetyCenterPage() {
             Kode PIN & Checklist Inspeksi Fisik
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Mobil tidak akan dinaikkan ke truk tanpa pencocokan kode PIN 4-digit unik dan checklist foto inspeksi kondisi bodi 5 sudut.
+            PIN dan checklist adalah bagian simulasi. Pemeriksaan operator belum terintegrasi dengan backend.
           </p>
           <div className="text-[11px] text-indigo-700 dark:text-indigo-400 font-semibold flex items-center gap-1 pt-1">
             <CheckCircle className="w-3.5 h-3.5" />
@@ -140,10 +140,10 @@ export default function SafetyCenterPage() {
           <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
             Honda Autoland, Toyota Auto2000, & Astra Otoservice 24 Jam
           </div>
-          <div className="text-slate-500 dark:text-slate-400">Menerima unit evakuasi Trobos tanpa antrean prioritas.</div>
+          <div className="text-slate-500 dark:text-slate-400">Nama bengkel hanya contoh — belum terkonfirmasi sebagai rekanan.</div>
         </div>
         <div className="text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 font-semibold text-[11px] shrink-0">
-          Prioritas Servis
+          Contoh Bengkel
         </div>
       </div>
 

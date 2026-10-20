@@ -41,7 +41,7 @@ export default function VehiclesPage() {
       color: formData.color,
       plate: formData.plate.toUpperCase(),
       fuelLevel: Number(formData.fuelLevel),
-      stnkVerified: true,
+      stnkVerified: false,
       type: formData.type,
       transmission: formData.transmission,
     };
