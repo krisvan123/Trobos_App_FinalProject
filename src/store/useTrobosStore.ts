@@ -196,7 +196,13 @@ export const useTrobosStore = create<TrobosStore>()(
       login: (email, name) => {
         set((state) => ({
           isAuthenticated: true,
-          user: { ...state.user, ...(email ? { email, phone: "", emergencyContact: { name: "Belum disetel", relation: "-", phone: "" } } : {}), ...(name ? { name } : {}) },
+          user: {
+            ...state.user,
+            email: email || "",
+            phone: "",
+            emergencyContact: { name: "Belum disetel", relation: "-", phone: "" },
+            ...(name ? { name } : {}),
+          },
         }));
       },
 

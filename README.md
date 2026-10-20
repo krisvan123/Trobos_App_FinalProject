@@ -87,3 +87,22 @@ For a production product, implement driver/vehicle roles, verified operator onbo
 The animation is an experience prototype, not actual traffic/navigation or driver telemetry. Do not use demo route suggestions for a real emergency.
 
 To obtain an optional CARTO key, visit https://www.carto.com/basemaps/apikey/ . A Google Maps browser API key and a CARTO basemaps key are **different** and are never bundled in the repository.
+
+## TROBOS Premium Public Experience
+
+Landing, sign-in, sign-up, account recovery and password reset use the same
+midnight/copper brand tokens as the application dashboard, with custom layouts
+for phones, tablets and desktop. The landing hero uses a **real interactive
+basemap** (Google Maps when configured, OpenStreetMap otherwise).
+
+Moving passenger vehicles, cars and flatbed towing trucks now use hand-crafted
+top-down **SVG vehicle silhouettes** instead of emoji/sticker markers. The
+orientation is calculated from the local route geometry and follows bends,
+while each simulated vehicle advances independently. The icons are source-owned,
+scalable and do not imitate Gojek/Grab trade dress or logos. No real driver GPS
+data is used.
+
+In backend-free demo mode, the public login page never asks for a real password.
+The registration page only requests a demo display name and acknowledgement,
+not unnecessary passwords or contact details. Real signup/authentication
+is enabled only with the configured Supabase service.

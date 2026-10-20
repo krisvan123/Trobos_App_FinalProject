@@ -27,11 +27,11 @@ export default function RegisterPage() {
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
-    if (form.password !== form.confirm) {
-      setError("Konfirmasi password harus sama."); return;
+    if (!form.agree) {
+      setError("Konfirmasi mode demo diperlukan."); return;
     }
-    if (form.password.length < 8 || !form.agree) {
-      setError("Password minimal delapan karakter dan konfirmasi demo diperlukan."); return;
+    if (hasBackend && (form.password !== form.confirm || form.password.length < 8)) {
+      setError("Password minimal delapan karakter dan konfirmasi password harus sama."); return;
     }
     setBusy(true);
     try {
@@ -47,7 +47,7 @@ export default function RegisterPage() {
           return;
         }
       }
-      login(form.email.trim(), form.name.trim());
+      login(hasBackend ? form.email.trim() : undefined, form.name.trim());
       setRegistered(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Pendaftaran belum berhasil.");
@@ -89,13 +89,13 @@ export default function RegisterPage() {
       <form onSubmit={submit} className="tr-auth-form">
         {error && <p role="alert" className="tr-form-alert"><AlertCircle size={17}/>{error}</p>}
         <div className="tr-form-field">
-          <label htmlFor="tr-reg-name">Nama lengkap</label>
+          <label htmlFor="tr-reg-name">{hasBackend ? "Nama lengkap" : "Nama panggilan demo"}</label>
           <div className="tr-input-wrap"><UserRound size={19}/>
             <input id="tr-reg-name" type="text" autoComplete="name" required minLength={2} maxLength={100}
               placeholder="Nama kamu" value={form.name} onChange={e => setForm({...form, name:e.target.value})}/>
           </div>
         </div>
-        <div className="tr-form-field">
+        {hasBackend && (<>\n        <div className="tr-form-field">
           <label htmlFor="tr-reg-email">Email</label>
           <div className="tr-input-wrap"><Mail size={19}/>
             <input id="tr-reg-email" type="email" autoComplete="email" required
@@ -124,14 +124,14 @@ export default function RegisterPage() {
               onChange={e => setForm({...form,confirm:e.target.value})}/>
           </div>
         </div>
-        <label className="tr-form-consent">
+        </>)}\n        <label className="tr-form-consent">
           <input type="checkbox" checked={form.agree} onChange={e => setForm({...form,agree:e.target.checked})} required/>
           <span>Saya memahami TROBOS adalah prototipe akademik dan belum menyediakan driver, pembayaran, atau asuransi aktif.</span>
         </label>
         <AuthSubmit busy={busy}>{busy ? "Menyiapkan..." : hasBackend ? "Buat akun TROBOS" : "Buat profil demo"}</AuthSubmit>
       </form>
       <div className="tr-auth-switch">Sudah punya akun? <Link href="/login">Masuk ke TROBOS</Link></div>
-      <p className="tr-auth-disclaimer">Gunakan informasi contoh untuk profil lokal jika tidak ingin menyimpan data pribadi pada browser bersama.</p>
+      <p className="tr-auth-disclaimer">Profil demo tersimpan di browser; gunakan nama contoh pada perangkat bersama.</p>
     </AuthFrame>
   );
 }
