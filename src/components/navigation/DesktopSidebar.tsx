@@ -26,13 +26,13 @@ export const DesktopSidebar: React.FC = () => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const mainLinks = [
-    { href: "/app", label: "Home", icon: Home },
-    { href: "/app/trips", label: "Trips", icon: Clock },
-    { href: "/app/safety", label: "Safety", icon: ShieldCheck },
-    { href: "/app/vehicles", label: "Vehicles", icon: Car },
-    { href: "/app/notifications", label: "Notifications", icon: Bell },
-    { href: "/app/profile", label: "Profile", icon: User },
-    { href: "/app/help", label: "Help Center", icon: HelpCircle },
+    { href: "/app", label: "Beranda", icon: Home },
+    { href: "/app/trips", label: "Riwayat", icon: Clock },
+    { href: "/app/safety", label: "Keamanan", icon: ShieldCheck },
+    { href: "/app/vehicles", label: "Kendaraan", icon: Car },
+    { href: "/app/notifications", label: "Notifikasi", icon: Bell },
+    { href: "/app/profile", label: "Profil", icon: User },
+    { href: "/app/help", label: "Bantuan", icon: HelpCircle },
   ];
 
   return (
