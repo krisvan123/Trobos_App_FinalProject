@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { calculateDemoFare } from "@/lib/pricing";
 import { nearestDemoWorkshop } from "@/lib/workshopRecommendation";
+import { resolveDemoArrival } from "@/lib/journeyArrival";
 import { persist } from "zustand/middleware";
 import {
   TripStatus,
@@ -502,45 +503,54 @@ export const useTrobosStore = create<TrobosStore>()(
 
       updateLiveProgress: (userProg, carProg, userEta, carEta) => {
         set((state) => {
-          if (!state.currentTrip) return {};
+          const trip=state.currentTrip;
+          if (!trip || !["TRIP_STARTED","USER_ARRIVED","VEHICLE_ARRIVED"].includes(trip.status)) return {};
+          const percentage=(n:number)=>Number.isFinite(n)?Math.max(0,Math.min(100,n)):0;
+          const passenger=Math.max(trip.userProgressPercent,percentage(userProg));
+          const vehicle=Math.max(trip.carProgressPercent,percentage(carProg));
           return {
-            currentTrip: {
-              ...state.currentTrip,
-              userProgressPercent: userProg,
-              carProgressPercent: carProg,
-              userEtaMinutes: userEta,
-              carEtaMinutes: carEta,
+            currentTrip:{
+              ...trip,
+              userProgressPercent:passenger,
+              carProgressPercent:vehicle,
+              userEtaMinutes:passenger>=100?0:Math.max(0,userEta),
+              carEtaMinutes:vehicle>=100?0:Math.max(0,carEta),
             },
           };
         });
       },
 
       userArrivedAtDest: () => {
-        set((state) => {
-          if (state.currentTrip?.status !== "TRIP_STARTED") return {};
-          return {
-            currentTrip: {
-              ...state.currentTrip,
-              status: "USER_ARRIVED",
-              userProgressPercent: 100,
-              userEtaMinutes: 0,
-            },
-          };
+        set(state => {
+          const trip=state.currentTrip;
+          if(!trip)return {};
+          const next=resolveDemoArrival(trip.status,trip.userProgressPercent,trip.carProgressPercent,"passenger");
+          if(!next)return {};
+          return { currentTrip:{
+            ...trip,
+            status:next.status,
+            userProgressPercent:next.passengerProgress,
+            carProgressPercent:next.vehicleProgress,
+            userEtaMinutes:0,
+            carEtaMinutes:next.vehicleProgress===100?0:trip.carEtaMinutes,
+          }};
         });
       },
 
       carArrivedAtDest: () => {
-        set((state) => {
-          if (state.currentTrip?.status !== "USER_ARRIVED") return {};
-          return {
-            currentTrip: {
-              ...state.currentTrip,
-              status: "COMPLETED",
-              userProgressPercent: 100,
-              carProgressPercent: 100,
-              carEtaMinutes: 0,
-            },
-          };
+        set(state => {
+          const trip=state.currentTrip;
+          if(!trip)return {};
+          const next=resolveDemoArrival(trip.status,trip.userProgressPercent,trip.carProgressPercent,"vehicle");
+          if(!next)return {};
+          return { currentTrip:{
+            ...trip,
+            status:next.status,
+            userProgressPercent:next.passengerProgress,
+            carProgressPercent:next.vehicleProgress,
+            carEtaMinutes:0,
+            userEtaMinutes:next.passengerProgress===100?0:trip.userEtaMinutes,
+          }};
         });
       },
 

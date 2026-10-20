@@ -109,32 +109,32 @@ export const BREAKDOWN_PROBLEMS: BreakdownProblem[] = [
 
 export const WORKSHOP_DESTINATIONS: LocationPoint[] = [
   {
-    name: "Bengkel Resmi Honda Autoland SCBD",
-    address: "Jl. Jend. Sudirman Kav. 52-53, Senayan, Jakarta Selatan",
-    lat: -6.2244,
-    lng: 106.8098,
-    areaTag: "Contoh Bengkel — Kemitraan Belum Terverifikasi",
+    name: "Bengkel Contoh Senopati (Demo)",
+    address: "Kawasan Senopati, Jakarta Selatan (titik simulasi)",
+    lat: -6.2329,
+    lng: 106.8058,
+    areaTag: "Bengkel contoh — tidak terverifikasi",
   },
   {
-    name: "Toyota Auto2000 Cilandak & Towing Hub",
-    address: "Jl. TB Simatupang No. 45, Cilandak Barat, Jakarta Selatan",
+    name: "Bengkel Contoh Cilandak (Demo)",
+    address: "Kawasan Cilandak Barat, Jakarta Selatan (titik simulasi)",
     lat: -6.2912,
     lng: 106.7972,
-    areaTag: "Bengkel Resmi & Stasiun Derek Siaga",
+    areaTag: "Bengkel contoh — tidak terverifikasi",
   },
   {
-    name: "Astra Otoservice 24 Jam Gatot Subroto",
-    address: "Jl. Gatot Subroto Kav. 36, Kuningan Barat, Jakarta Selatan",
+    name: "Bengkel Contoh Gatot Subroto (Demo)",
+    address: "Kawasan Gatot Subroto, Jakarta Selatan (titik simulasi)",
     lat: -6.2378,
     lng: 106.8291,
-    areaTag: "Layanan Cepat & Diagnosis Mesin",
+    areaTag: "Bengkel contoh — tidak terverifikasi",
   },
   {
-    name: "BOS Bengkel Otomotif Senayan",
-    address: "Jl. Asia Afrika No. 19, Gelora, Tanah Abang",
-    lat: -6.2198,
-    lng: 106.7995,
-    areaTag: "Spesialis Kaki-kaki & Ban 24 Jam",
+    name: "Bengkel Contoh Permata Hijau (Demo)",
+    address: "Kawasan Permata Hijau, Jakarta Selatan (titik simulasi)",
+    lat: -6.2243,
+    lng: 106.7948,
+    areaTag: "Bengkel contoh — tidak terverifikasi",
   },
 ];
 
