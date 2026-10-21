@@ -1637,3 +1637,53 @@ body {
   .tr-experience-map-actions a[aria-label="Notifikasi"] {display:none;}
   .tr-presenter-reset {top:43px;}
 }
+
+/* Public homepage: clear booking choices before opening the dashboard. */
+.tr-hero-booking { width:100%; max-width:600px; margin-top:22px; display:flex; flex-direction:column;gap:10px; }
+.tr-hero-booking-label { font-size:10px; font-weight:860; letter-spacing:.14em; color:var(--tr-public-copper); }
+.tr-hero-booking-options { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+.tr-hero-booking-option { display:flex; align-items:flex-start;gap:10px;min-width:0;min-height:110px;
+  border:1px solid var(--tr-line);border-radius:17px;padding:15px 12px;
+  background:var(--tr-surface);color:var(--tr-ink);
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease; }
+.tr-hero-booking-option:hover { transform:translateY(-2px);border-color:rgba(194,118,81,.55);box-shadow:0 13px 30px -22px rgba(22,37,47,.32); }
+.tr-hero-booking-icon { display:grid;place-items:center;flex:none;width:36px;height:36px;
+  border-radius:12px;background:rgba(194,118,81,.13);color:var(--tr-public-copper); }
+.tr-hero-booking-option>span:nth-child(2) { flex:1;min-width:0; }
+.tr-hero-booking-option strong { display:block;font-size:12px;font-weight:830;line-height:1.4; }
+.tr-hero-booking-option small { display:block;font-size:10px;line-height:1.5;color:var(--tr-muted);margin-top:5px; }
+.tr-hero-booking-option>svg { flex:none;color:var(--tr-public-copper);width:17px; }
+.tr-hero-booking>p { font-size:10px;line-height:1.6;color:var(--tr-muted); }
+.tr-hero-booking + .tr-hero-actions { margin-top:3px; }
+
+/* Keep the booking confirmation reachable above the phone bottom navigation. */
+@media(max-width:767px) {
+  .tr-hero-booking { margin-top:18px; }
+  .tr-hero-booking-options { grid-template-columns:1fr;gap:8px; }
+  .tr-hero-booking-option { min-height:76px;align-items:center;padding:12px; }
+  .tr-hero-booking-option small { margin-top:2px; }
+  .tr-experience-planning .tr-new-booking-footer {
+    position:fixed;left:0;right:0;top:auto;
+    bottom:calc(70px + env(safe-area-inset-bottom,0px));
+    z-index:44;background:var(--tr-surface);
+    padding:10px 15px 12px;box-shadow:0 -10px 33px rgba(12,29,40,.16);
+  }
+  .tr-experience-planning .tr-new-booking-footer>p {display:none;}
+  .tr-experience-planning .tr-new-booking-cta {min-height:45px;margin-top:7px;}
+  .tr-experience-planning .tr-new-fare-row>div>strong {font-size:19px;}
+  .tr-experience-planning .tr-new-form-panel {
+    padding-bottom:calc(190px + env(safe-area-inset-bottom,0px));
+  }
+}
+/* The previous trip remains available until a new booking is confirmed. */
+.tr-entry-backdrop {position:fixed;inset:0;z-index:160;display:flex;justify-content:center;align-items:center;
+  padding:16px;background:rgba(8,19,30,.77);backdrop-filter:blur(9px);}
+.tr-entry-dialog {width:min(100%,430px);border-radius:23px;padding:25px;background:var(--tr-surface);
+  color:var(--tr-ink);border:1px solid var(--tr-line);box-shadow:0 28px 80px rgba(0,0,0,.3);}
+.tr-entry-dialog h2 {font-size:23px;font-weight:870;letter-spacing:-.04em;margin:15px 0 7px;}
+.tr-entry-dialog p {font-size:12px;line-height:1.65;color:var(--tr-muted);}
+.tr-entry-actions {display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:19px;}
+.tr-entry-actions>button {min-height:45px;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;
+  border-radius:11px;border:1px solid var(--tr-line);background:var(--tr-raised);font-size:11px;font-weight:790;}
+.tr-entry-actions>button:last-child {background:var(--tr-accent-strong);color:white;border-color:var(--tr-accent-strong);}
+@media(max-width:370px) {.tr-entry-actions {grid-template-columns:1fr;}}

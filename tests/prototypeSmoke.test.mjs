@@ -32,3 +32,23 @@ test("private geolocation isn't sent to free demo route service",()=>{
   const map=source("src/components/map/InteractiveMap.tsx");
   assert.match(map,/if \(!isPublicDemoPoint\(start\) \|\| !isPublicDemoPoint\(end\)\)/);
 });
+
+test("public landing sends users to explicit service booking rather than a hidden flow",()=>{
+  const landing=source("src/app/page.tsx");
+  assert.match(landing,/href="\/app\?service=TANDEM"/);
+  assert.match(landing,/href="\/app\?service=MECHANIC"/);
+  assert.match(landing,/Pesan Tandem/);
+  assert.match(landing,/Pesan Derek & Rescue/);
+});
+test("existing demo booking is preserved until the user confirms replacement",()=>{
+  const handler=source("src/components/booking/BookingEntryHandler.tsx");
+  assert.match(handler,/if \(state\.currentTrip\)/);
+  assert.match(handler,/state\.setServiceType\(requested\)/);
+  assert.match(handler,/getState\(\)\.resetToIdle\(\)/);
+  assert.match(handler,/setPending\(null\)/);
+});
+test("booking summary action remains wired to a draft trip",()=>{
+  const planner=source("src/components/booking/BookingPlanner.tsx");
+  assert.match(planner,/className="tr-new-booking-cta" onClick=\{\(\)=>startBooking\(\)\}/);
+  assert.match(planner,/Lanjut ke ringkasan/);
+});

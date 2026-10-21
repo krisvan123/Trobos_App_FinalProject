@@ -20,6 +20,7 @@ const sections = [
 export function DesktopSidebar() {
   const pathname = usePathname();
   const theme = useTrobosStore(s => s.theme);
+  const trip = useTrobosStore(s => s.currentTrip);
   const toggleTheme = useTrobosStore(s => s.toggleTheme);
   const [logoutOpen, setLogoutOpen] = useState(false);
   return (
@@ -27,14 +28,15 @@ export function DesktopSidebar() {
       <aside className="trobos-desktop-rail" aria-label="Navigasi utama desktop">
         <Link href="/app" aria-label="TROBOS Beranda" className="trobos-rail-logo"><Zap size={22} strokeWidth={2.8}/></Link>
         <nav aria-label="Menu aplikasi">
-          {sections.map(({href,label,icon:Icon}) => (
-            <Link key={href} href={href} aria-label={label} title={label}
+          {sections.map(({href,label,icon:Icon}) => {
+            const visibleLabel = href === "/app" ? (trip && trip.status !== "REQUESTED" ? "Tracking" : "Pesan") : label;
+            return <Link key={href} href={href} aria-label={visibleLabel} title={visibleLabel}
               aria-current={pathname === href ? "page" : undefined}
               className={"trobos-rail-link " + (pathname === href ? "is-active" : "")}>
               <Icon size={20} strokeWidth={1.85}/>
-              <span>{label}</span>
-            </Link>
-          ))}
+              <span>{visibleLabel}</span>
+            </Link>;
+          })}
         </nav>
         <div className="trobos-rail-end">
           <button type="button" className="trobos-rail-link" onClick={toggleTheme}

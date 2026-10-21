@@ -35,7 +35,7 @@ export function PublicHeader({ minimal = false }: { minimal?: boolean }) {
             ? <Link className="tr-header-link" href="/"><ArrowLeft size={16}/> Beranda</Link>
             : <>
               <Link className="tr-header-link" href="/login">Masuk</Link>
-              <Link className="tr-header-primary" href="/app">Buka demo <ArrowUpRight size={16}/></Link>
+              <Link className="tr-header-primary" href="/app">Pesan bantuan <ArrowUpRight size={16}/></Link>
             </>
           }
         </nav>

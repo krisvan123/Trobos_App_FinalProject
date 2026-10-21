@@ -25,8 +25,23 @@ export default function LandingPage() {
           <span className="tr-kicker"><span className="tr-status-light"/> A NEW WAY TO KEEP MOVING</span>
           <h1>Kamu tetap jalan.<br/><em>Mobil tetap tertangani.</em></h1>
           <p>Bayangkan perjalanan yang tidak berhenti saat kendaraan membutuhkan bantuan. TROBOS menyatukan perjalanan penumpang dan penanganan mobil dalam satu pengalaman digital.</p>
+          <div className="tr-hero-booking" aria-label="Mulai pemesanan bantuan demo">
+            <span className="tr-hero-booking-label">PILIH BANTUAN · SIMULASI</span>
+            <div className="tr-hero-booking-options">
+              <Link href="/app?service=TANDEM" className="tr-hero-booking-option">
+                <span className="tr-hero-booking-icon"><Bike size={22}/></span>
+                <span><strong>Pesan Tandem</strong><small>Penumpang lanjut, mobil diantar driver</small></span>
+                <ArrowUpRight size={20}/>
+              </Link>
+              <Link href="/app?service=MECHANIC" className="tr-hero-booking-option">
+                <span className="tr-hero-booking-icon"><Truck size={22}/></span>
+                <span><strong>Pesan Derek & Rescue</strong><small>Mobil ke bengkel, penumpang lanjut</small></span>
+                <ArrowUpRight size={20}/>
+              </Link>
+            </div>
+            <p>Pilih layanan untuk mengatur titik bantuan dan tujuan. Peta tracking baru muncul setelah konfirmasi.</p>
+          </div>
           <div className="tr-hero-actions">
-            <Link href="/app" className="tr-public-primary"><span>Jelajahi aplikasi</span><ArrowUpRight size={19}/></Link>
             <a href="#cara-kerja" className="tr-secondary-link">Lihat cara kerja <ChevronRight size={18}/></a>
           </div>
           <div className="tr-hero-trust">
@@ -88,7 +103,7 @@ export default function LandingPage() {
             <div><small>REKOMENDASI DEMO</small><strong>{transport.title}</strong><span>{transport.description}</span></div>
             <ChevronRight size={19}/>
           </div>
-          <Link href="/app" className="tr-passenger-cta">Coba rute di aplikasi <ArrowRight size={17}/></Link>
+          <Link href="/app?service=TANDEM" className="tr-passenger-cta">Mulai pesan Tandem <ArrowRight size={17}/></Link>
         </div>
       </section>
 
@@ -119,7 +134,7 @@ export default function LandingPage() {
 
       <section className="tr-landing-last">
         <div><span className="tr-kicker">MOVE WITH TROBOS</span><h2>Pengalaman mobilitas<br/>yang lebih menyatu.</h2><p>Jelajahi konsep TROBOS langsung lewat peta dan simulasi perjalanannya.</p></div>
-        <Link href="/app" className="tr-public-primary">Buka aplikasi demo <ArrowUpRight size={18}/></Link>
+        <Link href="/app" className="tr-public-primary">Mulai pemesanan demo <ArrowUpRight size={18}/></Link>
       </section>
       <footer className="tr-public-footer"><span>© 2026 TROBOS / MOBILITY CONCEPT</span><span>Dirancang untuk demonstrasi · Bukan layanan rescue aktif</span><Link href="/login">Masuk <ArrowRight size={15}/></Link></footer>
     </main>

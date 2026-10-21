@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTrobosStore } from "@/store/useTrobosStore";
 import { InteractiveMap } from "@/components/map/InteractiveMap";
 import { BookingPlanner } from "@/components/booking/BookingPlanner";
+import { BookingEntryHandler } from "@/components/booking/BookingEntryHandler";
 import { EmergencyBookingSheet } from "@/components/emergency/EmergencyBookingSheet";
 import { FindingTandemModal } from "@/components/emergency/FindingTandemModal";
 import { TandemFoundCard } from "@/components/emergency/TandemFoundCard";
@@ -130,6 +131,7 @@ export default function HomePage() {
         {(status === "TRIP_STARTED" || status === "USER_ARRIVED" || status === "VEHICLE_ARRIVED") && <DualJourneyTracker/>}
         {status === "COMPLETED" && <TripCompletedModal/>}
       </div>
+      <BookingEntryHandler/>
       <DriverChatModal isOpen={isChatOpen} onClose={()=>setChatOpen(false)}/>
     </div>
   );
