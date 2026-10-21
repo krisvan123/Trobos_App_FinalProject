@@ -14,7 +14,7 @@ import { DualJourneyTracker } from "@/components/emergency/DualJourneyTracker";
 import { TripCompletedModal } from "@/components/emergency/TripCompletedModal";
 
 import { DriverChatModal } from "@/components/emergency/DriverChatModal";
-import { ArrowRight, Bell, Bike, CarFront, ChevronRight, MapPin, Moon, Navigation, ShieldCheck, Sun, UserRound } from "lucide-react";
+import { ArrowRight, Bell, Bike, CarFront, ChevronRight, MapPin, Moon, Navigation, RotateCcw, ShieldCheck, Sun, UserRound } from "lucide-react";
 
 const phaseLabel: Record<string,string> = {
   SEARCHING_TANDEM: "Mencari armada contoh",
@@ -30,6 +30,7 @@ const phaseLabel: Record<string,string> = {
 };
 
 export default function HomePage() {
+  const [resetOpen, setResetOpen] = React.useState(false);
   const trip = useTrobosStore(s => s.currentTrip);
   const status = trip?.status || "IDLE";
   const planning = status === "IDLE" || status === "REQUESTED";
@@ -80,6 +81,18 @@ export default function HomePage() {
               </button>
               <Link href="/app/notifications" className="tr-experience-map-button" aria-label="Notifikasi"><Bell size={18}/></Link>
               <Link href="/app/profile" className="tr-experience-map-button" aria-label="Profil"><UserRound size={18}/></Link>
+              <button type="button" className="tr-experience-map-button tr-presenter-reset-trigger"
+                title="Ulangi demo" aria-label="Ulangi demo dari awal"
+                aria-expanded={resetOpen} onClick={() => setResetOpen(open => !open)}><RotateCcw size={18}/></button>
+              {resetOpen && <div className="tr-presenter-reset" role="alertdialog"
+                aria-label="Konfirmasi mengulang simulasi" aria-describedby="tr-presenter-reset-desc">
+                <strong>Ulangi simulasi?</strong>
+                <p id="tr-presenter-reset-desc">Perjalanan yang sedang ditampilkan akan dihentikan. Kamu bisa memilih Tandem atau Rescue lagi tanpa menghapus riwayat demo.</p>
+                <div>
+                  <button type="button" onClick={() => setResetOpen(false)}>Lanjutkan</button>
+                  <button type="button" onClick={() => { reset(); setResetOpen(false); }}>Mulai ulang <ArrowRight size={15}/></button>
+                </div>
+              </div>}
             </div>
           </div>
           <div className="tr-experience-route-badge" aria-label="Rute tujuan">

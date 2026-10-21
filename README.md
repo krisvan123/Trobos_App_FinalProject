@@ -202,3 +202,25 @@ only completes after both progress values reach 100%.
 6. Check help tutorial, safety disclosures, dark mode, profile and vehicles.
 7. Refresh an unfinished demo and confirm the state loads without stale
    alerts, phantom drivers, or false insurance/verification claims.
+
+## Presentation-safe simulation clock (October 2026)
+
+The authoritative demonstration timeline is now controlled by
+`DemoSimulationRuntime` in the root layout and stored timestamps:
+`searchStartedAt`, `approachStartedAt` and `travelStartedAt`.
+The map **renders** fractional marker positions but no longer changes the
+status itself. Browser navigation between `/app` and `/driver`, or a
+page refresh in the same browser, can resume progress from these saved times.
+Skip actions remain independent, so one vehicle finishing doesn't stop the
+other. Previous trips lacking timestamps safely start a new demo clock from
+their last saved position when loaded.
+
+For live presentations, the tracking header includes a **restart demo**
+control with explicit confirmation. Restarting ends the current simulation
+but doesn't clear completed trip history. Use this to switch between Tandem
+and Rescue during a talk.
+
+These are *client-side demonstration clocks*, not a backend authoritative
+travel timeline. The operating-system clock can be changed and multiple
+devices are not synchronized. The app still needs direct visual checks at
+the target venue before claiming complete reliability.
