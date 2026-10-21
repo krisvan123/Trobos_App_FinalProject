@@ -7,6 +7,7 @@ import type { LocationPoint, TripStatus } from "@/types/trobos";
 import { MOCK_LOCATIONS, DEMO_PICKUP_POINTS, WORKSHOP_DESTINATIONS } from "@/lib/mockData";
 import { vehicleSvg, waypointSvg, type MovingVehicle, type Waypoint } from "@/lib/mapVehicleIcons";
 import { prepareRoute, sampleRoute, sampleHeading, type PreparedRoute } from "@/lib/routeMotion";
+import { demoVisualProgress, DEMO_DURATIONS } from "@/lib/demoTimeline";
 
 interface InteractiveMapProps {
   status?: TripStatus;
@@ -239,10 +240,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const theme = useTrobosStore(s => s.theme);
   const setPickupLocation = useTrobosStore(s => s.setPickupLocation);
   const setSelectedDestination = useTrobosStore(s => s.setSelectedDestination);
-  const setArrived = useTrobosStore(s => s.setArrived);
-  const updateLiveProgress = useTrobosStore(s => s.updateLiveProgress);
-  const userArrivedAtDest = useTrobosStore(s => s.userArrivedAtDest);
-  const carArrivedAtDest = useTrobosStore(s => s.carArrivedAtDest);
+
   const hostRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<{ pickup?: any; destination?: any; workshop?: any; rider?: any; towing?: any }>({});
@@ -475,68 +473,51 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine, approaching, tripRunning, passengerKind, carKind]);
 
+  // Only paint frames here. The app-wide persisted timeline is authoritative
+  // and remains active on /driver, other pages, and after rehydration.
   useEffect(() => {
     if (!engine || (!tripRunning && !approaching)) return;
     let frame = 0;
-    let last = 0;
     let lastPan = 0;
-    const start = performance.now();
-    const fromUser = userProgress;
-    const fromCar = carProgress;
-    const currentStatus = status;
     const update = (now: number) => {
       const liveTrip = useTrobosStore.getState().currentTrip;
-      // A skip can complete a vehicle immediately; never let a stale frame
-      // jump it backwards or override a newly advanced trip phase.
-      if (!liveTrip || liveTrip.status !== currentStatus) return;
-      const elapsed = now - start;
-      if (currentStatus === "TANDEM_APPROACHING") {
-        const approachPercent = Math.min(100, elapsed / 36000 * 100);
-        const marker = markersRef.current.rider;
-        if (marker) {
-          const pos = sampleRoute(routesRef.current.approach, approachPercent);
-          if (engineRef.current) moveVehicle(marker, routesRef.current.approach, approachPercent, passengerKind, engineRef.current);
-          if (followRef.current !== "off" && mapRef.current && now - lastPan > 950) {
-            mapRef.current.panTo(engineRef.current === "google" ? pos : [pos.lat,pos.lng],
-              engineRef.current === "leaflet" ? { animate:true, duration:0.8 } : undefined);
-            lastPan = now;
-          }
-        }
-        if (approachPercent === 100) { setArrived(); return; }
-      } else if (currentStatus === "TRIP_STARTED" || currentStatus === "USER_ARRIVED" || currentStatus === "VEHICLE_ARRIVED") {
-        const up = currentStatus === "USER_ARRIVED" ? 100 : Math.min(100, fromUser + elapsed / 110000 * 100);
-        const cp = currentStatus === "VEHICLE_ARRIVED" ? 100 : Math.min(100, fromCar + elapsed / 140000 * 100);
-        // Move both vehicles each animation frame; write readable HUD progress
-        // at a lower rate to keep React renders and phone battery usage down.
-        if (engineRef.current) {
-          moveVehicle(markersRef.current.rider, routesRef.current.passenger, up, passengerKind, engineRef.current);
-          moveVehicle(markersRef.current.towing, routesRef.current.towing, cp, carKind, engineRef.current);
-        }
+      if (!liveTrip || (liveTrip.status !== status &&
+          !(liveTrip.status === "COMPLETED" && tripRunning))) return;
+      const wallClock = Date.now();
+      if (approaching) {
+        const start = liveTrip.approachStartedAt;
+        const up = demoVisualProgress(0, start, DEMO_DURATIONS.approach, wallClock);
+        if (engineRef.current) moveVehicle(markersRef.current.rider, routesRef.current.approach,
+          up, passengerKind, engineRef.current);
         if (followRef.current !== "off" && mapRef.current && now - lastPan > 950) {
-          const route = followRef.current === "tow" ? routesRef.current.towing : routesRef.current.passenger;
-          const location = sampleRoute(route, followRef.current === "tow" ? cp : up);
-          mapRef.current.panTo(engineRef.current === "google" ? location : [location.lat, location.lng],
-            engineRef.current === "leaflet" ? { animate:true, duration:0.8 } : undefined);
+          const pos = sampleRoute(routesRef.current.approach, up);
+          mapRef.current.panTo(engineRef.current === "google" ? pos : [pos.lat, pos.lng],
+            engineRef.current === "leaflet" ? { animate:true, duration:.8 } : undefined);
           lastPan = now;
         }
-        if (now - last > 430) {
-          updateLiveProgress(Math.round(up), Math.round(cp), Math.ceil((100 - up) / 100 * 2), Math.ceil((100 - cp) / 100 * 3));
-          last = now;
+      } else if (tripRunning) {
+        const passenger = demoVisualProgress(liveTrip.userProgressPercent, liveTrip.travelStartedAt,
+          DEMO_DURATIONS.passenger, wallClock);
+        const car = demoVisualProgress(liveTrip.carProgressPercent, liveTrip.travelStartedAt,
+          DEMO_DURATIONS.vehicle, wallClock);
+        if (engineRef.current) {
+          moveVehicle(markersRef.current.rider, routesRef.current.passenger, passenger, passengerKind, engineRef.current);
+          moveVehicle(markersRef.current.towing, routesRef.current.towing, car, carKind, engineRef.current);
         }
-        if (up >= 100 && (currentStatus === "TRIP_STARTED" || currentStatus === "VEHICLE_ARRIVED")) {
-          userArrivedAtDest(); return;
+        if (followRef.current !== "off" && mapRef.current && now - lastPan > 950) {
+          const isCar = followRef.current === "tow";
+          const route = isCar ? routesRef.current.towing : routesRef.current.passenger;
+          const pos = sampleRoute(route, isCar ? car : passenger);
+          mapRef.current.panTo(engineRef.current === "google" ? pos : [pos.lat,pos.lng],
+            engineRef.current === "leaflet" ? { animate:true, duration:.8 } : undefined);
+          lastPan = now;
         }
-        if (cp >= 100 && (currentStatus === "TRIP_STARTED" || currentStatus === "USER_ARRIVED")) {
-          carArrivedAtDest(); return;
-        }
-      } else return;
-      frame = requestAnimationFrame(update);
+      }
+      frame = window.requestAnimationFrame(update);
     };
-    frame = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(frame);
-    // Current progress is sampled only when the trip phase changes, not on every animation tick.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [engine, status, setArrived, updateLiveProgress, userArrivedAtDest, carArrivedAtDest, passengerKind, carKind]);
+    frame = window.requestAnimationFrame(update);
+    return () => window.cancelAnimationFrame(frame);
+  }, [engine, status, tripRunning, approaching, passengerKind, carKind]);
 
   // Focus immediately on the selected vehicle; subsequent frames keep it in view.
   useEffect(() => {

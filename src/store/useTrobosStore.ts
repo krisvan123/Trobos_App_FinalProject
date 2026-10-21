@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { calculateDemoFare } from "@/lib/pricing";
 import { nearestDemoWorkshop } from "@/lib/workshopRecommendation";
 import { resolveDemoArrival } from "@/lib/journeyArrival";
+import { advanceDemoTimeline } from "@/lib/demoTimeline";
 import { persist } from "zustand/middleware";
 import {
   TripStatus,
@@ -97,6 +98,8 @@ interface TrobosStore {
   toggleChecklistItem: (key: keyof Omit<HandoverChecklist, 'fuelRecorded' | 'confirmed'>) => void;
   setHandoverFuel: (level: number) => void;
   confirmVehicleHandover: () => void;
+  /** Advance all demo statuses with persisted timestamps, independent of the map. */
+  tickDemoTimeline: (now?: number) => void;
   updateLiveProgress: (userProg: number, carProg: number, userEta: number, carEta: number) => void;
   userArrivedAtDest: () => void;
   carArrivedAtDest: () => void;
@@ -370,6 +373,9 @@ export const useTrobosStore = create<TrobosStore>()(
           currentTrip: {
             ...trip,
             status: "SEARCHING_TANDEM",
+            searchStartedAt: Date.now(),
+            approachStartedAt: undefined,
+            travelStartedAt: undefined,
             origin: state.pickupLocation,
             serviceType: state.serviceType,
             paymentMethod: state.paymentMethod,
@@ -391,7 +397,7 @@ export const useTrobosStore = create<TrobosStore>()(
       },
 
       returnToBooking: () => set((state) => state.currentTrip ? ({
-        currentTrip: { ...state.currentTrip, status: "REQUESTED", tandem: null },
+        currentTrip: { ...state.currentTrip, status: "REQUESTED", tandem: null, searchStartedAt: undefined },
       }) : {}),
 
       assignTandem: () => {
@@ -414,6 +420,7 @@ export const useTrobosStore = create<TrobosStore>()(
             currentTrip: {
               ...state.currentTrip,
               status: "TANDEM_APPROACHING",
+              approachStartedAt: Date.now(),
               tandem: state.currentTrip.tandem || MOCK_TANDEM,
             },
           };
@@ -487,11 +494,25 @@ export const useTrobosStore = create<TrobosStore>()(
             currentTrip: {
               ...state.currentTrip,
               status: "TRIP_STARTED",
+              travelStartedAt: Date.now(),
               handover: {
                 ...state.currentTrip.handover,
                 confirmed: true,
               },
             },
+          };
+        });
+      },
+
+      tickDemoTimeline: (now = Date.now()) => {
+        set(state => {
+          const active = state.currentTrip;
+          if (!active) return {};
+          const { trip, changed } = advanceDemoTimeline(active, now);
+          if (!changed) return {};
+          return {
+            currentTrip: trip.status === "TANDEM_ASSIGNED" && !trip.tandem
+              ? { ...trip, tandem: MOCK_TANDEM } : trip,
           };
         });
       },
@@ -665,6 +686,10 @@ export const useTrobosStore = create<TrobosStore>()(
           currentTrip: {
             ...baseTrip,
             status: targetStatus,
+            searchStartedAt: targetStatus === "SEARCHING_TANDEM" ? Date.now() : undefined,
+            approachStartedAt: targetStatus === "TANDEM_APPROACHING" ? Date.now() : undefined,
+            travelStartedAt: ["TRIP_STARTED", "USER_ARRIVED", "VEHICLE_ARRIVED"].includes(targetStatus)
+              ? Date.now() : undefined,
             tandem: MOCK_TANDEM,
             towingUnit: MOCK_TOWING,
             userProgressPercent: userProg,
