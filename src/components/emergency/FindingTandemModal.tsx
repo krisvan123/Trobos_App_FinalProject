@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useTrobosStore } from "@/store/useTrobosStore";
 import { RadioTower, Search, Truck, Bike, CarFront, X } from "lucide-react";
 
@@ -8,11 +8,8 @@ export function FindingTandemModal() {
   const resetToIdle = useTrobosStore(s => s.resetToIdle);
   const trip = useTrobosStore(s => s.currentTrip);
   const isTandem = trip?.serviceType === "TANDEM";
-  const assignTandem = useTrobosStore(s => s.assignTandem);
-  useEffect(() => {
-    const timer = window.setTimeout(assignTandem, 10000);
-    return () => window.clearTimeout(timer);
-  }, [assignTandem]);
+  // Matching advances through the app-wide persisted demo timeline.
+  // This sheet only displays the search state and offers cancellation.
 
   return (
     <div className="fixed inset-x-0 bottom-0 sm:bottom-6 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-40 w-full sm:max-w-md px-3 sm:px-4 pb-6 pt-2">

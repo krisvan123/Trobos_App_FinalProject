@@ -28,6 +28,7 @@ export const viewport: Viewport = {
 };
 
 import { ThemeInitializer } from "@/components/common/ThemeInitializer";
+import { DemoSimulationRuntime } from "@/components/common/DemoSimulationRuntime";
 
 export default function RootLayout({
   children,
@@ -38,6 +39,7 @@ export default function RootLayout({
     <html lang="id" className="scroll-smooth">
       <body className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-orange-500 selection:text-white transition-colors">
         <ThemeInitializer />
+        <DemoSimulationRuntime />
         {children}
       </body>
     </html>

@@ -154,6 +154,10 @@ export interface ChatMessage {
 }
 
 export interface ActiveTrip {
+  /** Local-only prototype timestamps, not actual dispatch or tracking. */
+  searchStartedAt?: number;
+  approachStartedAt?: number;
+  travelStartedAt?: number;
   id: string;
   status: TripStatus;
   serviceType: ServiceType;
